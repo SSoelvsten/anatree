@@ -139,7 +139,7 @@ public:
   insert(const word_t& w)
   {
     word_t key = sorted_word(w);
-    m_root = insert_word(m_root, w, key.begin(), key.end());
+    m_root = insert__rec(m_root, w, key.begin(), key.end());
   }
 
 private:
@@ -202,7 +202,7 @@ public:
   typename std::unordered_set<word_t>
   keys() const
   {
-    return keys_rec(m_root);
+    return keys__rec(m_root);
   }
 
 private:
@@ -235,7 +235,7 @@ public:
   subanagrams_of(const word_t& w) const
   {
     word_t key = sorted_word(w);
-    return get_words(m_root, key.begin(), key.end());
+    return subanagrams_of__rec(m_root, key.begin(), key.end());
   }
 
 private:
