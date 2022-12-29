@@ -46,7 +46,7 @@ add_executable(<target> <source>)
 target_link_libraries(<target> anatree)
 ```
 
-### Unit Tests
+## Unit Tests
 
 The anatree is tested with the [Bandit](https://github.com/banditcpp/bandit)
 unit testing framework. If you did not already clone this repository recursively
