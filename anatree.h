@@ -155,19 +155,20 @@ private:
     typename node::ptr np = node::make_node();
 
     // Case: NIL
-    // -> Create a copy of this node
+    // -> Leave node as-is
     if (p->m_char == node::NIL) {
       assert(p->m_children[false] == nullptr && p->m_children[true] == nullptr);
     }
 
     // Case: not NIL
-    // -> Obtain deep copy of children and create new node of current
+    // -> Obtain recursively deep copy of children and copy over 'm_char'
     else {
       np->m_char = p->m_char;
       np->m_children[false] = deep_copy(p->m_children[false]);
       np->m_children[true]  = deep_copy(p->m_children[true]);
     }
 
+    // Copy over the set of words stored within this node.
     np->m_words = p->m_words;
     return np;
   }
