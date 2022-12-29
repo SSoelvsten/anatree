@@ -23,7 +23,7 @@ test:
 	@mkdir -p build/
 	@cd build/ && cmake -D CMAKE_BUILD_TYPE=Debug ..
 	@cd build/ && make anatree_test
-	@build/test/anatree_test
+	@build/test/anatree_test --reporter=info --colorizer=light
 
 docs:
 	@echo "No Doxygen documentation supported"

@@ -4,7 +4,7 @@ target_include_directories(anatree INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-target_compile_features(anatree INTERFACE cxx_std_17)
+target_compile_features(anatree INTERFACE cxx_std_20)
 
 target_include_directories(
   anatree INTERFACE
