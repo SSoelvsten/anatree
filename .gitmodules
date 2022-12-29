@@ -1,0 +1,4 @@
+[submodule "external/bandit"]
+	path = external/bandit
+	url = ../../banditcpp/bandit
+	branch = headers-only
