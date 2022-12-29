@@ -71,7 +71,7 @@ go_bandit([]() {
       AssertThat(a.size(), Is().EqualTo(3u));
       AssertThat(a.empty(), Is().False());
 
-      AssertThat(a.tree_size(), Is().EqualTo(4u));
+      AssertThat(a.tree_size(), Is().EqualTo(5u));
     });
 
     it("can report size of { 'a', '', 'b' }", []() {
@@ -96,7 +96,7 @@ go_bandit([]() {
       AssertThat(a.size(), Is().EqualTo(4u));
       AssertThat(a.empty(), Is().False());
 
-      AssertThat(a.tree_size(), Is().EqualTo(6u));
+      AssertThat(a.tree_size(), Is().EqualTo(7u));
     });
 
     it("does not increment size when inserting duplicate 'ab'", []() {
@@ -121,7 +121,7 @@ go_bandit([]() {
       AssertThat(a.size(), Is().EqualTo(3u));
       AssertThat(a.empty(), Is().False());
 
-      AssertThat(a.tree_size(), Is().EqualTo(6u));
+      AssertThat(a.tree_size(), Is().EqualTo(7u));
     });
   });
 
