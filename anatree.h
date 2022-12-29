@@ -32,11 +32,16 @@
 /// word (within or not).
 ////////////////////////////////////////////////////////////////////////////////
 template<typename word_t = std::string, typename char_t = std::string::value_type>
-class anatree {
+class anatree
+{
 private:
-  class node {
+  //////////////////////////////////////////////////////////////////////////////
+  /// \brief Individual node of the Anatree.
+  ///////////////////////////////////////////////////////////////////////////////
+  class node
+  {
   public:
-    typedef std::shared_ptr<node> ptr; // <-- TODO: 'std::unique_ptr'
+    typedef std::shared_ptr<node> ptr;
 
     static constexpr char_t NIL = 0;
 
@@ -52,7 +57,7 @@ private:
     /// Follow the 'false' pointer, if 'm_char' does not occur in the word.
     /// Otherwise follow the 'true' pointer, if it does.
     ////////////////////////////////////////////////////////////////////////////
-    ptr m_children[2] = { nullptr, nullptr }; // <-- TODO: variable out-degree
+    ptr m_children[2] = { nullptr, nullptr };
 
     ////////////////////////////////////////////////////////////////////////////
     /// \brief Set of words that are anagrams of the path up to this node.
@@ -117,7 +122,7 @@ private:
 
 private:
   //////////////////////////////////////////////////////////////////////////////
-  /// \brief Root of the anatree (initially a NIL pointer).
+  /// \brief Root of the anatree (initially a NIL node).
   //////////////////////////////////////////////////////////////////////////////
   typename node::ptr m_root = node::make_node();
   size_t m_tree_size = 1u;
@@ -125,17 +130,6 @@ private:
 public:
   anatree() = default;
   anatree(const anatree&) = default;
-
-private:
-  //////////////////////////////////////////////////////////////////////////////
-  /// \brief Creates a copy of the word 'w' with its characters sorted.
-  //////////////////////////////////////////////////////////////////////////////
-  word_t sorted_word(const word_t& w) const
-  {
-    word_t ret(w);
-    std::sort(ret.begin(), ret.end()); // <-- TODO: non-default ordering?
-    return ret;
-  }
 
 public:
   //////////////////////////////////////////////////////////////////////////////
@@ -295,6 +289,7 @@ public:
     m_tree_size = 1u;
   }
 
+public:
   //////////////////////////////////////////////////////////////////////////////
   /// \brief Number of nodes.
   //////////////////////////////////////////////////////////////////////////////
@@ -302,6 +297,17 @@ public:
   tree_size()
   {
     return m_tree_size;
+  }
+
+private:
+  //////////////////////////////////////////////////////////////////////////////
+  /// \brief Creates a copy of the word 'w' with its characters sorted.
+  //////////////////////////////////////////////////////////////////////////////
+  word_t sorted_word(const word_t& w) const
+  {
+    word_t ret(w);
+    std::sort(ret.begin(), ret.end()); // <-- TODO: non-default ordering?
+    return ret;
   }
 };
 
