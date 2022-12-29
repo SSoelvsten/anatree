@@ -292,10 +292,11 @@ private:
       return ret;
     }
 
-    const auto rec_false = keys__rec(p->m_children[false]);
     const auto rec_true = keys__rec(p->m_children[true]);
-    ret.insert(rec_false.begin(), rec_false.end());
     ret.insert(rec_true.begin(), rec_true.end());
+
+    const auto rec_false = keys__rec(p->m_children[false]);
+    ret.insert(rec_false.begin(), rec_false.end());
     return ret;
   }
 

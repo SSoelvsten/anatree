@@ -331,14 +331,21 @@ go_bandit([]() {
 
   // ---------------------------------------------------------------------------
   describe("insert(), anagrams_of()", []() {
-    it("can identify anagrams of '' in Ø", []() {
+    it("can find anagrams of '' in Ø", []() {
       anatree<> a;
 
       const auto res = a.anagrams_of("");
-      AssertThat(res.size(), Is().EqualTo(0u));
+      AssertThat(res.empty(), Is().True());
     });
 
-    it("can identify anagrams of '' in { 'a' }", []() {
+    it("can find anagrams of 'a' in Ø", []() {
+      anatree<> a;
+
+      const auto res = a.anagrams_of("a");
+      AssertThat(res.empty(), Is().True());
+    });
+
+    it("can find anagrams of '' in { 'a' }", []() {
       anatree<> a;
       a.insert("a");
 
@@ -346,7 +353,7 @@ go_bandit([]() {
       AssertThat(res.size(), Is().EqualTo(0u));
     });
 
-    it("can identify anagrams of '' in { 'a', '' }", []() {
+    it("can find anagrams of '' in { 'a', '' }", []() {
       anatree<> a;
       a.insert("a");
       a.insert("");
@@ -356,7 +363,7 @@ go_bandit([]() {
       AssertThat(res.contains(""), Is().True());
     });
 
-    it("can identify anagrams of 'ab' in { 'a', 'ab', 'ba' }", []() {
+    it("can find anagrams of 'ab' in { 'a', 'ab', 'ba' }", []() {
       anatree<> a;
       a.insert("a");
       a.insert("ab");
@@ -368,7 +375,7 @@ go_bandit([]() {
       AssertThat(res.contains("ba"), Is().True());
     });
 
-    it("can identify anagrams of 'ab' in { 'a', 'ab', 'aa', 'ba', 'b', 'aba' }", []() {
+    it("can find anagrams of 'ab' in { 'a', 'ab', 'aa', 'ba', 'b', 'aba' }", []() {
       anatree<> a;
       a.insert("a");
       a.insert("ab");
@@ -394,7 +401,7 @@ go_bandit([]() {
       AssertThat(res.contains("ab"), Is().True());
     });
 
-    it("can identify anagrams of 'ab' in { 'ba', 'a' }", []() {
+    it("can find anagrams of 'ab' in { 'ba', 'a' }", []() {
       anatree<> a;
       a.insert("ba");
       a.insert("a");
@@ -404,7 +411,7 @@ go_bandit([]() {
       AssertThat(res.contains("ba"), Is().True());
     });
 
-    it("can identify anagrams of 'ab' in { 'ab', 'ba', 'a' }", []() {
+    it("can find anagrams of 'ab' in { 'ab', 'ba', 'a' }", []() {
       anatree<> a;
       a.insert("ab");
       a.insert("ba");
@@ -416,7 +423,7 @@ go_bandit([]() {
       AssertThat(res.contains("ba"), Is().True());
     });
 
-    it("can identify anagrams of 'a' in { 'ab', 'ba', 'a' }", []() {
+    it("can find anagrams of 'a' in { 'ab', 'ba', 'a' }", []() {
       anatree<> a;
       a.insert("ab");
       a.insert("ba");
@@ -425,6 +432,329 @@ go_bandit([]() {
       const auto res = a.anagrams_of("a");
       AssertThat(res.size(), Is().EqualTo(1u));
       AssertThat(res.contains("a"), Is().True());
+    });
+
+    it("can find anagrams in { 'odd', 'dog', 'fog', 'loo', 'god' }", []() {
+      anatree<> a;
+      a.insert("odd");
+      a.insert("dog");
+      a.insert("fog");
+      a.insert("loo");
+      a.insert("god");
+
+      {
+        const auto res = a.anagrams_of("odd");
+        AssertThat(res.size(), Is().EqualTo(1u));
+        AssertThat(res.contains("odd"), Is().True());
+      }
+
+      {
+        const auto res = a.anagrams_of("dog");
+        AssertThat(res.size(), Is().EqualTo(2u));
+        AssertThat(res.contains("dog"), Is().True());
+        AssertThat(res.contains("god"), Is().True());
+      }
+
+      {
+        const auto res = a.anagrams_of("fog");
+        AssertThat(res.size(), Is().EqualTo(1u));
+        AssertThat(res.contains("fog"), Is().True());
+      }
+
+      {
+        const auto res = a.anagrams_of("loo");
+        AssertThat(res.size(), Is().EqualTo(1u));
+        AssertThat(res.contains("loo"), Is().True());
+      }
+
+      {
+        const auto res = a.anagrams_of("god");
+        AssertThat(res.size(), Is().EqualTo(2u));
+        AssertThat(res.contains("dog"), Is().True());
+        AssertThat(res.contains("god"), Is().True());
+      }
+    });
+
+    it("can find anagrams in { 'do', 'dog', 'fog', 'god', 'gold', 'loo', 'odd', 'of', 'oo' }", []() {
+      anatree<> a;
+      a.insert("do");
+      a.insert("dog");
+      a.insert("fog");
+      a.insert("god");
+      a.insert("gold");
+      a.insert("loo");
+      a.insert("odd");
+      a.insert("of");
+      a.insert("oo");
+
+      {
+        const auto res = a.anagrams_of("loo");
+        AssertThat(res.size(), Is().EqualTo(1u));
+        AssertThat(res.contains("loo"), Is().True());
+      }
+
+      {
+        const auto res = a.anagrams_of("dog");
+        AssertThat(res.size(), Is().EqualTo(2u));
+        AssertThat(res.contains("dog"), Is().True());
+        AssertThat(res.contains("god"), Is().True());
+      }
+
+      {
+        const auto res = a.anagrams_of("gold");
+        AssertThat(res.size(), Is().EqualTo(1u));
+        AssertThat(res.contains("gold"), Is().True());
+      }
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  describe("insert(), keys()", []() {
+    it("can find representatives in { 'a', 'ab' }", []() {
+      anatree<> a;
+      a.insert("a");
+      a.insert("ab");
+
+      const auto res = a.keys();
+      AssertThat(res.size(), Is().EqualTo(1u));
+      AssertThat(res.contains("ab"), Is().True());
+    });
+
+    it("can find representatives in { 'a', 'b', 'ab' }", []() {
+      anatree<> a;
+      a.insert("a");
+      a.insert("ab");
+      a.insert("b");
+
+      const auto res = a.keys();
+      AssertThat(res.size(), Is().EqualTo(1u));
+      AssertThat(res.contains("ab"), Is().True());
+    });
+
+    it("can find representatives in { 'do', 'dog', 'fog', 'god', 'gold', 'loo', 'odd', 'of', 'oo' }", []() {
+      anatree<> a;
+      a.insert("do");
+      a.insert("dog");
+      a.insert("fog");
+      a.insert("god");
+      a.insert("gold");
+      a.insert("loo");
+      a.insert("odd");
+      a.insert("of");
+      a.insert("oo");
+
+      const auto res = a.keys();
+      AssertThat(res.size(), Is().EqualTo(4u));
+      AssertThat(res.contains("loo"), Is().True());
+      AssertThat(res.contains("fog"), Is().True());
+      AssertThat(res.contains("gold"), Is().True());
+      AssertThat(res.contains("odd"), Is().True());
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  describe("insert(), subanagrams_of()", []() {
+    it("can find subanagrams of '' in Ø", []() {
+      anatree<> a;
+
+      const auto res = a.subanagrams_of("");
+      AssertThat(res.empty(), Is().True());
+    });
+
+    it("can find subanagrams of 'a' in Ø", []() {
+      anatree<> a;
+
+      const auto res = a.subanagrams_of("a");
+      AssertThat(res.empty(), Is().True());
+    });
+
+    it("can find subanagrams of '' in { '', 'a' }", []() {
+      anatree<> a;
+      a.insert("");
+      a.insert("a");
+
+      const auto res = a.subanagrams_of("");
+      AssertThat(res.size(), Is().EqualTo(1u));
+      AssertThat(res.contains(""), Is().True());
+    });
+
+    it("can find subanagrams of 'a' in { '', 'a' }", []() {
+      anatree<> a;
+      a.insert("");
+      a.insert("a");
+
+      const auto res = a.subanagrams_of("a");
+      AssertThat(res.size(), Is().EqualTo(2u));
+      AssertThat(res.contains("a"), Is().True());
+      AssertThat(res.contains(""), Is().True());
+    });
+
+    it("can find subanagrams of 'a' in { 'a', 'b' }", []() {
+      anatree<> a;
+      a.insert("a");
+      a.insert("b");
+
+      const auto res = a.subanagrams_of("a");
+      AssertThat(res.size(), Is().EqualTo(1u));
+      AssertThat(res.contains("a"), Is().True());
+    });
+
+    it("can find subanagrams of 'b' in { 'a', 'b' }", []() {
+      anatree<> a;
+      a.insert("a");
+      a.insert("b");
+
+      const auto res = a.subanagrams_of("b");
+      AssertThat(res.size(), Is().EqualTo(1u));
+      AssertThat(res.contains("b"), Is().True());
+    });
+
+    it("can find subanagrams of 'ab' and 'ba' in { 'a', 'ab', 'b', 'ba' }", []() {
+      anatree<> a;
+      a.insert("a");
+      a.insert("ab");
+      a.insert("ba");
+      a.insert("b");
+
+      {
+        const auto res = a.subanagrams_of("ab");
+        AssertThat(res.size(), Is().EqualTo(4u));
+        AssertThat(res.contains("a"), Is().True());
+        AssertThat(res.contains("b"), Is().True());
+        AssertThat(res.contains("ab"), Is().True());
+        AssertThat(res.contains("ba"), Is().True());
+      }
+
+      {
+        const auto res = a.subanagrams_of("ba");
+        AssertThat(res.size(), Is().EqualTo(4u));
+        AssertThat(res.contains("a"), Is().True());
+        AssertThat(res.contains("b"), Is().True());
+        AssertThat(res.contains("ab"), Is().True());
+        AssertThat(res.contains("ba"), Is().True());
+      }
+    });
+
+    it("can find subanagrams of 'ab' and 'ba' in { 'a', 'ab', 'c', 'ba' }", []() {
+      anatree<> a;
+      a.insert("a");
+      a.insert("ab");
+      a.insert("ba");
+      a.insert("c");
+
+      {
+        const auto res = a.subanagrams_of("ab");
+        AssertThat(res.size(), Is().EqualTo(3u));
+        AssertThat(res.contains("a"), Is().True());
+        AssertThat(res.contains("ab"), Is().True());
+        AssertThat(res.contains("ba"), Is().True());
+      }
+
+      {
+        const auto res = a.subanagrams_of("ba");
+        AssertThat(res.size(), Is().EqualTo(3u));
+        AssertThat(res.contains("a"), Is().True());
+        AssertThat(res.contains("ab"), Is().True());
+        AssertThat(res.contains("ba"), Is().True());
+      }
+    });
+
+    it("does not have multiple copies of 'ab' in { 'a', 'ab', 'b', 'ab' }", []() {
+      anatree<> a;
+      a.insert("a");
+      a.insert("ab");
+      a.insert("b");
+      a.insert("ab");
+
+      const auto res = a.subanagrams_of("ab");
+      AssertThat(res.size(), Is().EqualTo(3u));
+      AssertThat(res.contains("a"), Is().True());
+      AssertThat(res.contains("b"), Is().True());
+      AssertThat(res.contains("ab"), Is().True());
+    });
+
+    it("can find subanagrams of 'ba' in { 'a', 'ab', 'b' }", []() {
+      anatree<> a;
+      a.insert("a");
+      a.insert("ab");
+      a.insert("b");
+
+      const auto res = a.subanagrams_of("ba");
+      AssertThat(res.size(), Is().EqualTo(3u));
+      AssertThat(res.contains("a"), Is().True());
+      AssertThat(res.contains("b"), Is().True());
+      AssertThat(res.contains("ab"), Is().True());
+    });
+
+    it("can find subanagrams of 'abc' in { 'bc', 'c', 'b' }", []() {
+      anatree<> a;
+      a.insert("bc");
+      a.insert("b");
+      a.insert("c");
+
+      const auto res = a.subanagrams_of("abc");
+      AssertThat(res.size(), Is().EqualTo(3u));
+      AssertThat(res.contains("bc"), Is().True());
+      AssertThat(res.contains("b"), Is().True());
+      AssertThat(res.contains("c"), Is().True());
+    });
+
+    it("can find subanagrams of 'acab' in { 'bbc', 'cc', 'bc', 'c' }", []() {
+      anatree<> a;
+      a.insert("bbc");
+      a.insert("cc");
+      a.insert("bc");
+      a.insert("c");
+
+      const auto res = a.subanagrams_of("acab");
+      AssertThat(res.size(), Is().EqualTo(2u));
+      AssertThat(res.contains("bc"), Is().True());
+      AssertThat(res.contains("c"), Is().True());
+    });
+
+    it("can find subanagrams in { 'do', 'dog', 'fog', 'god', 'gold', 'loo', 'odd', 'of', 'oo' }", []() {
+      anatree<> a;
+      a.insert("do");
+      a.insert("dog");
+      a.insert("fog");
+      a.insert("god");
+      a.insert("gold");
+      a.insert("loo");
+      a.insert("odd");
+      a.insert("of");
+      a.insert("oo");
+
+      {
+        const auto res = a.subanagrams_of("loo");
+        AssertThat(res.size(), Is().EqualTo(2u));
+        AssertThat(res.contains("loo"), Is().True());
+        AssertThat(res.contains("oo"), Is().True());
+      }
+
+      {
+        const auto res = a.subanagrams_of("dog");
+        AssertThat(res.size(), Is().EqualTo(3u));
+        AssertThat(res.contains("dog"), Is().True());
+        AssertThat(res.contains("god"), Is().True());
+        AssertThat(res.contains("do"), Is().True());
+      }
+
+      {
+        const auto res = a.subanagrams_of("god");
+        AssertThat(res.size(), Is().EqualTo(3u));
+        AssertThat(res.contains("dog"), Is().True());
+        AssertThat(res.contains("god"), Is().True());
+        AssertThat(res.contains("do"), Is().True());
+      }
+
+      {
+        const auto res = a.subanagrams_of("gold");
+        AssertThat(res.size(), Is().EqualTo(4u));
+        AssertThat(res.contains("gold"), Is().True());
+        AssertThat(res.contains("dog"), Is().True());
+        AssertThat(res.contains("god"), Is().True());
+        AssertThat(res.contains("do"), Is().True());
+      }
     });
   });
  });
