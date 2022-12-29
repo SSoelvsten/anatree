@@ -28,8 +28,8 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief A data structure capable of storing a set of 'std::string' (or
-/// similar) data structures, enabling quick access to all 'anagrams' of each
-/// word (within or not).
+///        similar) data structures, enabling quick access to all 'anagrams' of
+///        each word (within or not).
 ////////////////////////////////////////////////////////////////////////////////
 template<typename word_t = std::string, typename char_t = std::string::value_type>
 class anatree
@@ -106,6 +106,7 @@ private:
     { return std::make_shared<node>(c, f_ptr, t_ptr); }
 
   public:
+    ////////////////////////////////////////////////////////////////////////////
     std::string to_string()
     {
       std::stringstream ss;
@@ -126,7 +127,14 @@ private:
   //////////////////////////////////////////////////////////////////////////////
   typename node::ptr m_root = node::make_node();
 
+  //////////////////////////////////////////////////////////////////////////////
+  /// \brief Number of words stored within this tree.
+  //////////////////////////////////////////////////////////////////////////////
   size_t m_size = 0u;
+
+  //////////////////////////////////////////////////////////////////////////////
+  /// \brief Number of nodes (including NIL) in the tree.
+  //////////////////////////////////////////////////////////////////////////////
   size_t m_tree_size = 1u;
 
 public:
@@ -152,7 +160,7 @@ private:
   typename node::ptr
   deep_copy(const typename node::ptr &p)
   {
-    typename node::ptr np = node::make_node();
+    const auto np = node::make_node();
 
     // Case: NIL
     // -> Leave node as-is
@@ -225,7 +233,7 @@ private:
     // Case: Iterator behind
     // -> Insert new node in-between
     if (*curr < p->m_char) {
-      const typename node::ptr np = node::make_node(*curr, p, node::make_node());
+      const auto np = node::make_node(*curr, p, node::make_node());
       np->m_words = p->m_words;
       p->m_words = std::unordered_set<word_t>();
       m_tree_size += 2; // <- new node and its NIL 'false' child
@@ -284,8 +292,8 @@ private:
       return ret;
     }
 
-    std::unordered_set<word_t> rec_false = keys__rec(p->m_children[false]);
-    std::unordered_set<word_t> rec_true = keys__rec(p->m_children[true]);
+    const auto rec_false = keys__rec(p->m_children[false]);
+    const auto rec_true = keys__rec(p->m_children[true]);
     ret.insert(rec_false.begin(), rec_false.end());
     ret.insert(rec_true.begin(), rec_true.end());
     return ret;
@@ -295,7 +303,8 @@ public:
   //////////////////////////////////////////////////////////////////////////////
   /// \brief Obtain all words that are anagrams of 'w'.
   ///
-  /// \details An anagram is a word that can be created from (all) the of 'w'.
+  /// \details An anagram is a word that can be created from (all) the letters
+  ///          of 'w'.
   //////////////////////////////////////////////////////////////////////////////
   typename std::unordered_set<word_t>
   anagrams_of(const word_t &w) const
@@ -368,7 +377,7 @@ private:
     // -> Follow 'false' child
     if (p->m_char < *curr) {
       std::unordered_set<word_t> ret(p->m_words);
-      const std::unordered_set<word_t> rec_false = subanagrams_of__rec(p->m_children[false], curr, end);
+      const auto rec_false = subanagrams_of__rec(p->m_children[false], curr, end);
       ret.insert(rec_false.begin(), rec_false.end());
       return ret;
     }
@@ -378,8 +387,8 @@ private:
     ++curr;
 
     std::unordered_set<word_t> ret(p->m_words);
-    const std::unordered_set<word_t> rec_false = subanagrams_of__rec(p->m_children[false], curr, end);
-    const std::unordered_set<word_t> rec_true = subanagrams_of__rec(p->m_children[true], curr, end);
+    const auto rec_false = subanagrams_of__rec(p->m_children[false], curr, end);
+    const auto rec_true = subanagrams_of__rec(p->m_children[true], curr, end);
     ret.insert(rec_false.begin(), rec_false.end());
     ret.insert(rec_true.begin(), rec_true.end());
     return ret;
