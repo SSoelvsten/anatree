@@ -115,11 +115,42 @@ private:
     }
   };
 
+private:
   //////////////////////////////////////////////////////////////////////////////
-  /// \brief Recursively inserts a word into the anatree.
+  /// \brief Root of the anatree (initially a NIL pointer).
   //////////////////////////////////////////////////////////////////////////////
+  typename node::ptr m_root = node::make_node();
+  size_t m_tree_size = 1u;
+
+public:
+  anatree() = default;
+  anatree(const anatree&) = default;
+
+private:
+  //////////////////////////////////////////////////////////////////////////////
+  /// \brief Creates a copy of the word 'w' with its characters sorted.
+  //////////////////////////////////////////////////////////////////////////////
+  word_t sorted_word(const word_t& w) const
+  {
+    word_t ret(w);
+    std::sort(ret.begin(), ret.end()); // <-- TODO: non-default ordering?
+    return ret;
+  }
+
+public:
+  //////////////////////////////////////////////////////////////////////////////
+  /// \brief Adds the word 'w' to the anatree.
+  //////////////////////////////////////////////////////////////////////////////
+  void
+  insert(const word_t& w)
+  {
+    word_t key = sorted_word(w);
+    m_root = insert_word(m_root, w, key.begin(), key.end());
+  }
+
+private:
   typename node::ptr
-  insert_word(const typename node::ptr& p,
+  insert__rec(const typename node::ptr& p,
               const word_t& w,
               typename word_t::iterator curr,
               const typename word_t::iterator end)
@@ -139,7 +170,7 @@ private:
       assert(p->m_children[false] == nullptr && p->m_children[true] == nullptr);
       p->init(*curr);
       m_tree_size += 2;
-      p->m_children[true] = insert_word(p->m_children[true], w, ++curr, end);
+      p->m_children[true] = insert__rec(p->m_children[true], w, ++curr, end);
       return p;
     }
 
@@ -150,30 +181,74 @@ private:
       np->m_words = p->m_words;
       p->m_words = std::unordered_set<word_t>();
       m_tree_size += 1;
-      np->m_children[true]  = insert_word(np->m_children[true], w, ++curr, end);
+      np->m_children[true]  = insert__rec(np->m_children[true], w, ++curr, end);
       return np;
     }
 
     // Case: Iterator ahead
     // -> Follow 'false' child
     if (p->m_char < *curr) {
-      p->m_children[false] = insert_word(p->m_children[false], w, curr, end);
+      p->m_children[false] = insert__rec(p->m_children[false], w, curr, end);
       return p;
     }
 
     // Case: Iterator and node matches
     // -> Follow 'true' child
-    p->m_children[true] = insert_word(p->m_children[true], w, ++curr, end);
+    p->m_children[true] = insert__rec(p->m_children[true], w, ++curr, end);
     return p;
   }
 
+public:
   //////////////////////////////////////////////////////////////////////////////
-  /// \brief Recursively gets all word on the path that matches the iterator.
+  /// \brief Obtain the minimal set of representative of all words.
+  ///
+  /// \detail Each word in the Anatree is either in the returned result or it is
+  ///         a subanagram of some other word in the result.
   //////////////////////////////////////////////////////////////////////////////
   typename std::unordered_set<word_t>
-  get_words(const typename node::ptr p,
-            typename word_t::iterator curr,
-            const typename word_t::iterator end) const
+  keys() const
+  {
+    return keys_rec(m_root);
+  }
+
+private:
+  typename std::unordered_set<word_t>
+  keys__rec(const typename node::ptr p) const
+  {
+    std::unordered_set<word_t> ret;
+    if (p->m_char == node::NIL) {
+      if (p->m_words.size() > 0) {
+        ret.insert(*p->m_words.begin());
+      }
+      return ret;
+    }
+
+    std::unordered_set<word_t> rec_false = keys__rec(p->m_children[false]);
+    std::unordered_set<word_t> rec_true = keys__rec(p->m_children[true]);
+    ret.insert(rec_false.begin(), rec_false.end());
+    ret.insert(rec_true.begin(), rec_true.end());
+    return ret;
+  }
+
+public:
+  //////////////////////////////////////////////////////////////////////////////
+  /// \brief Obtain all words that are subanagrams of 'w'.
+  ///
+  /// \details A subanagram is a word that can be created from some (but not
+  ///          necessarily all) letters of 'w'.
+  //////////////////////////////////////////////////////////////////////////////
+  typename std::unordered_set<word_t>
+  subanagrams_of(const word_t& w) const
+  {
+    word_t key = sorted_word(w);
+    return get_words(m_root, key.begin(), key.end());
+  }
+
+private:
+  typename std::unordered_set<word_t>
+  subanagrams_of__rec(const typename node::ptr p,
+                      typename word_t::iterator curr,
+                      const typename word_t::iterator end) const
   {
     // Case: Iterator or Anatree is done
     if (curr == end || p->m_char == node::NIL) {
@@ -185,14 +260,14 @@ private:
     if (*curr < p->m_char) {
       // Skip missing characters.
       while (*curr < p->m_char && curr != end) { ++curr; }
-      return get_words(p, curr, end);
+      return subanagrams_of__rec(p, curr, end);
     }
 
     // Case: Iterator ahead
     // -> Follow 'false' child
     if (p->m_char < *curr) {
       std::unordered_set<word_t> ret(p->m_words);
-      std::unordered_set<word_t> rec = get_words(p->m_children[false], curr, end);
+      std::unordered_set<word_t> rec = subanagrams_of__rec(p->m_children[false], curr, end);
       ret.insert(rec.begin(), rec.end());
       return ret;
     }
@@ -202,87 +277,14 @@ private:
     ++curr;
 
     std::unordered_set<word_t> ret(p->m_words);
-    std::unordered_set<word_t> rec_false = get_words(p->m_children[false], curr, end);
-    std::unordered_set<word_t> rec_true = get_words(p->m_children[true], curr, end);
+    std::unordered_set<word_t> rec_false = subanagrams_of__rec(p->m_children[false], curr, end);
+    std::unordered_set<word_t> rec_true = subanagrams_of__rec(p->m_children[true], curr, end);
     ret.insert(rec_false.begin(), rec_false.end());
     ret.insert(rec_true.begin(), rec_true.end());
     return ret;
   }
 
-  //////////////////////////////////////////////////////////////////////////////
-  /// \brief Recursively obtain all words at the leaves.
-  //////////////////////////////////////////////////////////////////////////////
-  typename std::unordered_set<word_t>
-  get_leaves(const typename node::ptr p) const
-  {
-    std::unordered_set<word_t> ret;
-    if (p->m_char == node::NIL) {
-      if (p->m_words.size() > 0) {
-        ret.insert(*p->m_words.begin());
-      }
-      return ret;
-    }
-
-    std::unordered_set<word_t> rec_false = get_leaves(p->m_children[false]);
-    std::unordered_set<word_t> rec_true = get_leaves(p->m_children[true]);
-    ret.insert(rec_false.begin(), rec_false.end());
-    ret.insert(rec_true.begin(), rec_true.end());
-    return ret;
-  }
-
-private:
-  //////////////////////////////////////////////////////////////////////////////
-  /// \brief Root of the anatree (initially a NIL pointer).
-  //////////////////////////////////////////////////////////////////////////////
-  typename node::ptr m_root = node::make_node();
-  size_t m_tree_size = 1u;
-
 public:
-  anatree() = default;
-  anatree(const anatree&) = default;
-
-private:
-  //////////////////////////////////////////////////////////////////////////////
-  /// \brief
-  //////////////////////////////////////////////////////////////////////////////
-  word_t sorted_word(const word_t& w) const
-  {
-    word_t ret(w);
-    std::sort(ret.begin(), ret.end()); // <-- TODO: frequency-based ordering?
-    return ret;
-  }
-
-public:
-  //////////////////////////////////////////////////////////////////////////////
-  /// \brief Adds the word 'w' to the anatree.
-  //////////////////////////////////////////////////////////////////////////////
-  void
-  insert(const word_t& w)
-  {
-    word_t key = sorted_word(w);
-    m_root = insert_word(m_root, w, key.begin(), key.end());
-  }
-
-  //////////////////////////////////////////////////////////////////////////////
-  /// \brief Obtain all words that are anagrams of 'w'.
-  //////////////////////////////////////////////////////////////////////////////
-  typename std::unordered_set<word_t>
-  keys() const
-  {
-    return get_leaves(m_root);
-  }
-
-
-  //////////////////////////////////////////////////////////////////////////////
-  /// \brief Obtain all words that are anagrams of 'w'.
-  //////////////////////////////////////////////////////////////////////////////
-  typename std::unordered_set<word_t>
-  anagrams_of(const word_t& w) const
-  {
-    word_t key = sorted_word(w);
-    return get_words(m_root, key.begin(), key.end());
-  }
-
   //////////////////////////////////////////////////////////////////////////////
   /// \brief Remove all nodes/anagrams.
   //////////////////////////////////////////////////////////////////////////////
