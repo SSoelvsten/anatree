@@ -168,7 +168,7 @@ private:
     if (p->m_char == node::NIL) {
       assert(p->m_children[false] == nullptr && p->m_children[true] == nullptr);
       p->init(*curr);
-      m_tree_size += 2;
+      m_tree_size += 2; // <- NIL 'false' and 'true' children
       p->m_children[true] = insert__rec(p->m_children[true], w, ++curr, end);
       return p;
     }
@@ -179,7 +179,7 @@ private:
       const typename node::ptr np = node::make_node(*curr, p, node::make_node());
       np->m_words = p->m_words;
       p->m_words = std::unordered_set<word_t>();
-      m_tree_size += 1;
+      m_tree_size += 2; // <- new node and its NIL 'false' child
       np->m_children[true]  = insert__rec(np->m_children[true], w, ++curr, end);
       return np;
     }
