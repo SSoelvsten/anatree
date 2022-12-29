@@ -11,6 +11,120 @@ using namespace bandit;
 // Define tests
 
 go_bandit([]() {
+  describe("insert(), tree_size(), size(), empty()", []() {
+    it("can report size of Ø", []() {
+      anatree<> a;
+
+      AssertThat(a.size(), Is().EqualTo(0u));
+      AssertThat(a.empty(), Is().True());
+
+      AssertThat(a.tree_size(), Is().EqualTo(1u));
+    });
+
+    it("can report size of { '' }", []() {
+      anatree<> a;
+      a.insert("");
+
+      AssertThat(a.size(), Is().EqualTo(1u));
+      AssertThat(a.empty(), Is().False());
+
+      AssertThat(a.tree_size(), Is().EqualTo(1u));
+    });
+
+    it("can report size of { 'a' }", []() {
+      anatree<> a;
+      a.insert("a");
+
+      AssertThat(a.size(), Is().EqualTo(1u));
+      AssertThat(a.empty(), Is().False());
+
+      AssertThat(a.tree_size(), Is().EqualTo(3u));
+    });
+
+    it("can report size of { 'b' }", []() {
+      anatree<> a;
+      a.insert("b");
+
+      AssertThat(a.size(), Is().EqualTo(1u));
+      AssertThat(a.empty(), Is().False());
+
+      AssertThat(a.tree_size(), Is().EqualTo(3u));
+    });
+
+    it("can report size of { 'a', 'b' }", []() {
+      anatree<> a;
+      a.insert("a");
+      a.insert("b");
+
+      AssertThat(a.size(), Is().EqualTo(2u));
+      AssertThat(a.empty(), Is().False());
+
+      AssertThat(a.tree_size(), Is().EqualTo(5u));
+    });
+
+    it("can report size of { 'b', '', 'a' }", []() {
+      anatree<> a;
+      a.insert("b");
+      a.insert("");
+      a.insert("a");
+
+      AssertThat(a.size(), Is().EqualTo(3u));
+      AssertThat(a.empty(), Is().False());
+
+      AssertThat(a.tree_size(), Is().EqualTo(4u));
+    });
+
+    it("can report size of { 'a', '', 'b' }", []() {
+      anatree<> a;
+      a.insert("a");
+      a.insert("");
+      a.insert("b");
+
+      AssertThat(a.size(), Is().EqualTo(3u));
+      AssertThat(a.empty(), Is().False());
+
+      AssertThat(a.tree_size(), Is().EqualTo(5u));
+    });
+
+    it("can report size of { '', 'b', 'ab', 'a' }", []() {
+      anatree<> a;
+      a.insert("");
+      a.insert("b");
+      a.insert("ab");
+      a.insert("a");
+
+      AssertThat(a.size(), Is().EqualTo(4u));
+      AssertThat(a.empty(), Is().False());
+
+      AssertThat(a.tree_size(), Is().EqualTo(6u));
+    });
+
+    it("does not increment size when inserting duplicate 'ab'", []() {
+      anatree<> a;
+      a.insert("a");
+      a.insert("ab");
+      a.insert("a");
+
+      AssertThat(a.size(), Is().EqualTo(2u));
+      AssertThat(a.empty(), Is().False());
+
+      AssertThat(a.tree_size(), Is().EqualTo(5u));
+    });
+
+    it("does not increment size when inserting duplicate 'a'", []() {
+      anatree<> a;
+      a.insert("b");
+      a.insert("a");
+      a.insert("ab");
+      a.insert("a");
+
+      AssertThat(a.size(), Is().EqualTo(3u));
+      AssertThat(a.empty(), Is().False());
+
+      AssertThat(a.tree_size(), Is().EqualTo(6u));
+    });
+  });
+
   describe("insert(), contains()", []() {
     it("can insert { '' }", []() {
       anatree<> a;
