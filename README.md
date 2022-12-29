@@ -21,20 +21,15 @@ For ease of use, we provide the following *make* targets.
 | `test`      | Builds and runs the unit tests        |
 | `docs`      | Builds the Doxygen Documentation      |
 
-### Local Installation
+### CMake Dependency
 
-The Anatree library can also be installed to */usr/local/include/* by use of the
-`install` *make* target or with the CMake target of the same name.
-
-### As a CMake Dependency
-
-The entire project is also set up to be built with CMake. Indeed instead of
-installation, we recommend that you include this *Anatree* repository as a
-submodule of your own project as follows
+The entire project is set up to be built with CMake. Indeed, we recommend that
+you include this *Anatree* repository as a submodule of your own project as
+follows
 
 ```bash
 git submodule add -b header-only https://github.com/ssoelvsten/anatree external/anatree
-git submodule update --init --recursive
+git submodule update --init
 ```
 
 Then within your own project you can just do
@@ -45,6 +40,12 @@ add_subdirectory(external/anatree)
 add_executable(<target> <source>)
 target_link_libraries(<target> anatree)
 ```
+
+### Installation
+
+The Anatree library can also be installed to */usr/local/include/* (or your
+machine's equivalent) by use of the `install` *make* target or with the CMake
+target of the same name.
 
 ## Unit Tests
 
