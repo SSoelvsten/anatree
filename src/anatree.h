@@ -287,7 +287,7 @@ public:
   /// \brief Remove all nodes/anagrams.
   //////////////////////////////////////////////////////////////////////////////
   void
-  erase()
+  clear()
   {
     m_root = node::make_node();
     m_size = 1u;
