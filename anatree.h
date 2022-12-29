@@ -194,7 +194,8 @@ private:
 
 public:
   //////////////////////////////////////////////////////////////////////////////
-  /// \brief Obtain the minimal set of representative of all words.
+  /// \brief Obtain the minimal representative set words that cover all of the
+  ///        words contained within the Anatree.
   ///
   /// \detail Each word in the Anatree is either in the returned result or it is
   ///         a subanagram of some other word in the result.
@@ -226,6 +227,47 @@ private:
 
 public:
   //////////////////////////////////////////////////////////////////////////////
+  /// \brief Obtain all words that are anagrams of 'w'.
+  ///
+  /// \details An anagram is a word that can be created from (all) the of 'w'.
+  //////////////////////////////////////////////////////////////////////////////
+  typename std::unordered_set<word_t>
+  anagrams_of(const word_t& w) const
+  {
+    word_t key = sorted_word(w);
+    return anagrams_of__rec(m_root, key.begin(), key.end());
+  }
+
+private:
+  typename std::unordered_set<word_t>
+  anagrams_of__rec(const typename node::ptr p,
+                   typename word_t::iterator curr,
+                   const typename word_t::iterator end) const
+  {
+    // Case: Iterator is done
+    if (curr == end) {
+      return p->m_words;
+    }
+
+    // Case: Iterator behind or tree is done
+    // -> No words with all letters exist, return Ø .
+    if (*curr < p->m_char || p->m_char == node::NIL) {
+      return std::unordered_set<word_t>();
+    }
+
+    // Case: Iterator ahead
+    // -> Follow 'false' child
+    if (p->m_char < *curr) {
+      return anagrams_of__rec(p->m_children[false], curr, end);
+    }
+
+    // Case: Iterator and node matches
+    // -> Follow 'true' child
+    return anagrams_of__rec(p->m_children[true], ++curr, end);
+  }
+
+public:
+  //////////////////////////////////////////////////////////////////////////////
   /// \brief Obtain all words that are subanagrams of 'w'.
   ///
   /// \details A subanagram is a word that can be created from some (but not
@@ -250,9 +292,8 @@ private:
     }
 
     // Case: Iterator behind
-    // -> Insert new node in-between
+    // -> Skip missing characters
     if (*curr < p->m_char) {
-      // Skip missing characters.
       while (*curr < p->m_char && curr != end) { ++curr; }
       return subanagrams_of__rec(p, curr, end);
     }
@@ -261,8 +302,8 @@ private:
     // -> Follow 'false' child
     if (p->m_char < *curr) {
       std::unordered_set<word_t> ret(p->m_words);
-      std::unordered_set<word_t> rec = subanagrams_of__rec(p->m_children[false], curr, end);
-      ret.insert(rec.begin(), rec.end());
+      const std::unordered_set<word_t> rec_false = subanagrams_of__rec(p->m_children[false], curr, end);
+      ret.insert(rec_false.begin(), rec_false.end());
       return ret;
     }
 
@@ -271,11 +312,21 @@ private:
     ++curr;
 
     std::unordered_set<word_t> ret(p->m_words);
-    std::unordered_set<word_t> rec_false = subanagrams_of__rec(p->m_children[false], curr, end);
-    std::unordered_set<word_t> rec_true = subanagrams_of__rec(p->m_children[true], curr, end);
+    const std::unordered_set<word_t> rec_false = subanagrams_of__rec(p->m_children[false], curr, end);
+    const std::unordered_set<word_t> rec_true = subanagrams_of__rec(p->m_children[true], curr, end);
     ret.insert(rec_false.begin(), rec_false.end());
     ret.insert(rec_true.begin(), rec_true.end());
     return ret;
+  }
+
+public:
+  //////////////////////////////////////////////////////////////////////////////
+  /// \brief Whether the Anatree includes the word 'w'.
+  //////////////////////////////////////////////////////////////////////////////
+  bool
+  contains(const word_t& w) const
+  {
+    return anagrams_of(w).contains(w);
   }
 
 public:
@@ -294,7 +345,7 @@ public:
   /// \brief Number of nodes.
   //////////////////////////////////////////////////////////////////////////////
   size_t
-  tree_size()
+  tree_size() const
   {
     return m_tree_size;
   }
