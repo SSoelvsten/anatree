@@ -125,6 +125,8 @@ private:
   /// \brief Root of the anatree (initially a NIL node).
   //////////////////////////////////////////////////////////////////////////////
   typename node::ptr m_root = node::make_node();
+
+  size_t m_size = 0u;
   size_t m_tree_size = 1u;
 
 public:
@@ -154,7 +156,10 @@ private:
     // Case: Iterator done
     // -> Insert word
     if (curr == end) {
-      p->m_words.insert(w);
+      if (!p->m_words.contains(w)) {
+        m_size++;
+        p->m_words.insert(w);
+      }
       return p;
     }
 
@@ -200,6 +205,7 @@ public:
   clear()
   {
     m_root = node::make_node();
+    m_size = 0u;
     m_tree_size = 1u;
   }
 
@@ -342,7 +348,27 @@ public:
 
 public:
   //////////////////////////////////////////////////////////////////////////////
-  /// \brief Number of nodes.
+  /// \brief Number of stored words.
+  //////////////////////////////////////////////////////////////////////////////
+  size_t
+  size() const
+  {
+    return m_size;
+  }
+
+public:
+  //////////////////////////////////////////////////////////////////////////////
+  /// \brief Whether the Anatree is empty.
+  //////////////////////////////////////////////////////////////////////////////
+  bool
+  empty() const
+  {
+    return size() == 0u;
+  }
+
+public:
+  //////////////////////////////////////////////////////////////////////////////
+  /// \brief Number of nodes within the tree.
   //////////////////////////////////////////////////////////////////////////////
   size_t
   tree_size() const
