@@ -130,15 +130,63 @@ private:
   size_t m_tree_size = 1u;
 
 public:
+  //////////////////////////////////////////////////////////////////////////////
+  /// \brief Constructor of an empty Anatree.
+  //////////////////////////////////////////////////////////////////////////////
   anatree() = default;
-  anatree(const anatree&) = default;
+
+public:
+  //////////////////////////////////////////////////////////////////////////////
+  /// \brief Copy-constructor, creating a deep copy of another Anatree.
+  ///
+  /// \warning Requires \f$O(N)\f$ time.
+  //////////////////////////////////////////////////////////////////////////////
+  anatree(const anatree &a)
+    : m_root(deep_copy(a.m_root))
+    , m_size(a.m_size)
+    , m_tree_size(a.m_tree_size)
+  { }
+
+private:
+  static
+  typename node::ptr
+  deep_copy(const typename node::ptr &p)
+  {
+    typename node::ptr np = node::make_node();
+
+    // Case: NIL
+    // -> Create a copy of this node
+    if (p->m_char == node::NIL) {
+      assert(p->m_children[false] == nullptr && p->m_children[true] == nullptr);
+    }
+
+    // Case: not NIL
+    // -> Obtain deep copy of children and create new node of current
+    else {
+      np->m_char = p->m_char;
+      np->m_children[false] = deep_copy(p->m_children[false]);
+      np->m_children[true]  = deep_copy(p->m_children[true]);
+    }
+
+    np->m_words = p->m_words;
+    return np;
+  }
+
+public:
+  //////////////////////////////////////////////////////////////////////////////
+  /// \brief Move-constructor, taking over ownership of the other's tree.
+  //////////////////////////////////////////////////////////////////////////////
+  anatree(anatree&&) = default;
+
+  // TODO with iterator:
+  // template<class InputIt> anatree(InputIt first, InputIt last)
 
 public:
   //////////////////////////////////////////////////////////////////////////////
   /// \brief Adds the word 'w' to the anatree.
   //////////////////////////////////////////////////////////////////////////////
   void
-  insert(const word_t& w)
+  insert(const word_t &w)
   {
     word_t key = sorted_word(w);
     m_root = insert__rec(m_root, w, key.begin(), key.end());
@@ -146,8 +194,8 @@ public:
 
 private:
   typename node::ptr
-  insert__rec(const typename node::ptr& p,
-              const word_t& w,
+  insert__rec(const typename node::ptr &p,
+              const word_t &w,
               typename word_t::iterator curr,
               const typename word_t::iterator end)
   {
@@ -249,7 +297,7 @@ public:
   /// \details An anagram is a word that can be created from (all) the of 'w'.
   //////////////////////////////////////////////////////////////////////////////
   typename std::unordered_set<word_t>
-  anagrams_of(const word_t& w) const
+  anagrams_of(const word_t &w) const
   {
     word_t key = sorted_word(w);
     return anagrams_of__rec(m_root, key.begin(), key.end());
@@ -291,7 +339,7 @@ public:
   ///          necessarily all) letters of 'w'.
   //////////////////////////////////////////////////////////////////////////////
   typename std::unordered_set<word_t>
-  subanagrams_of(const word_t& w) const
+  subanagrams_of(const word_t &w) const
   {
     word_t key = sorted_word(w);
     return subanagrams_of__rec(m_root, key.begin(), key.end());
@@ -341,7 +389,7 @@ public:
   /// \brief Whether the Anatree includes the word 'w'.
   //////////////////////////////////////////////////////////////////////////////
   bool
-  contains(const word_t& w) const
+  contains(const word_t &w) const
   {
     return anagrams_of(w).contains(w);
   }
@@ -380,7 +428,7 @@ private:
   //////////////////////////////////////////////////////////////////////////////
   /// \brief Creates a copy of the word 'w' with its characters sorted.
   //////////////////////////////////////////////////////////////////////////////
-  word_t sorted_word(const word_t& w) const
+  word_t sorted_word(const word_t &w) const
   {
     word_t ret(w);
     std::sort(ret.begin(), ret.end());
