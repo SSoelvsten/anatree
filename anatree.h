@@ -306,7 +306,7 @@ private:
   word_t sorted_word(const word_t& w) const
   {
     word_t ret(w);
-    std::sort(ret.begin(), ret.end()); // <-- TODO: non-default ordering?
+    std::sort(ret.begin(), ret.end());
     return ret;
   }
 };
