@@ -11,6 +11,7 @@ using namespace bandit;
 // Define tests
 
 go_bandit([]() {
+  // ---------------------------------------------------------------------------
   describe("insert(), tree_size(), size(), empty()", []() {
     it("can report size of Ø", []() {
       anatree<> a;
@@ -125,6 +126,85 @@ go_bandit([]() {
     });
   });
 
+  // ---------------------------------------------------------------------------
+  describe("anatree(...)", []() {
+    it("can create a new and empty tree", []() {
+      anatree<> a;
+
+      AssertThat(a.size(), Is().EqualTo(0u));
+      AssertThat(a.empty(), Is().True());
+
+      AssertThat(a.tree_size(), Is().EqualTo(1u));
+    });
+
+    it("can (deep) copy-construct an empty Anatree", []() {
+      anatree<> a1;
+      anatree<> a2(a1);
+
+      AssertThat(a2.size(), Is().EqualTo(0u));
+      AssertThat(a2.empty(), Is().True());
+
+      AssertThat(a2.tree_size(), Is().EqualTo(1u));
+
+      // Check is an independent deep copy
+      a2.insert("a");
+
+      AssertThat(a1.contains("a"), Is().False());
+    });
+
+    it("can (deep) copy-construct a non-empty Anatree", []() {
+      anatree<> a1;
+      a1.insert("b");
+      a1.insert("ab");
+
+      anatree<> a2(a1);
+
+      AssertThat(a2.size(), Is().EqualTo(2u));
+      AssertThat(a2.empty(), Is().False());
+
+      AssertThat(a2.tree_size(), Is().EqualTo(7u));
+
+      AssertThat(a2.contains("b"), Is().True());
+      AssertThat(a2.contains("ab"), Is().True());
+
+      // Check is an independent deep copy
+      a2.insert("a");
+
+      AssertThat(a1.contains("a"), Is().False());
+    });
+
+    it("can nove-construct an empty Anatree", []() {
+      const auto a1_gen = []() {
+        anatree<> a1;
+        return a1;
+      };
+
+      anatree<> a2(a1_gen());
+
+      AssertThat(a2.size(), Is().EqualTo(0u));
+      AssertThat(a2.empty(), Is().True());
+
+      AssertThat(a2.tree_size(), Is().EqualTo(1u));
+    });
+
+    it("can nove-construct a non-empty Anatree", []() {
+      const auto a1_gen = []() {
+        anatree<> a1;
+        a1.insert("b");
+        a1.insert("ab");
+        return a1;
+      };
+
+      anatree<> a2(a1_gen());
+
+      AssertThat(a2.size(), Is().EqualTo(2u));
+      AssertThat(a2.empty(), Is().False());
+
+      AssertThat(a2.tree_size(), Is().EqualTo(7u));
+    });
+  });
+
+  // ---------------------------------------------------------------------------
   describe("insert(), contains()", []() {
     it("can insert { '' }", []() {
       anatree<> a;
@@ -249,6 +329,7 @@ go_bandit([]() {
     });
   });
 
+  // ---------------------------------------------------------------------------
   describe("insert(), anagrams_of()", []() {
     it("can identify anagrams of '' in Ø", []() {
       anatree<> a;
