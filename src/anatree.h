@@ -138,7 +138,7 @@ private:
     if (p->m_char == node::NIL) {
       assert(p->m_children[false] == nullptr && p->m_children[true] == nullptr);
       p->init(*curr);
-      m_size += 2;
+      m_tree_size += 2;
       p->m_children[true] = insert_word(p->m_children[true], w, ++curr, end);
       return p;
     }
@@ -149,7 +149,7 @@ private:
       const typename node::ptr np = node::make_node(*curr, p, node::make_node());
       np->m_words = p->m_words;
       p->m_words = std::unordered_set<word_t>();
-      m_size += 1;
+      m_tree_size += 1;
       np->m_children[true]  = insert_word(np->m_children[true], w, ++curr, end);
       return np;
     }
@@ -235,7 +235,7 @@ private:
   /// \brief Root of the anatree (initially a NIL pointer).
   //////////////////////////////////////////////////////////////////////////////
   typename node::ptr m_root = node::make_node();
-  size_t m_size = 1u;
+  size_t m_tree_size = 1u;
 
 public:
   anatree() = default;
@@ -290,16 +290,16 @@ public:
   clear()
   {
     m_root = node::make_node();
-    m_size = 1u;
+    m_tree_size = 1u;
   }
 
   //////////////////////////////////////////////////////////////////////////////
   /// \brief Number of nodes.
   //////////////////////////////////////////////////////////////////////////////
   size_t
-  size()
+  tree_size()
   {
-    return m_size;
+    return m_tree_size;
   }
 };
 
