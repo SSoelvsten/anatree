@@ -272,12 +272,14 @@ public:
     return get_leaves(m_root);
   }
 
-
   //////////////////////////////////////////////////////////////////////////////
-  /// \brief Obtain all words that are anagrams of 'w'.
+  /// \brief Obtain all words that are subanagrams of 'w'.
+  ///
+  /// \details A subanagram is a word that can be created from some (but not
+  ///          necessarily all) letters of 'w'.
   //////////////////////////////////////////////////////////////////////////////
   typename std::unordered_set<word_t>
-  anagrams_of(const word_t& w) const
+  subanagrams_of(const word_t& w) const
   {
     word_t key = sorted_word(w);
     return get_words(m_root, key.begin(), key.end());
