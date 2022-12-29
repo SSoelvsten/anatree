@@ -28,12 +28,12 @@ The Anatree library can also be installed to */usr/local/include/* by use of the
 
 ### As a CMake Dependency
 
-The entire project is also set up to be built with CMake. Hence, we recommend
-instead of installation that you include this *Anatree* repository as a
+The entire project is also set up to be built with CMake. Indeed instead of
+installation, we recommend that you include this *Anatree* repository as a
 submodule of your own project as follows
 
 ```bash
-git submodule add -b main https://github.com/ssoelvsten/anatree external/anatree
+git submodule add -b header-only https://github.com/ssoelvsten/anatree external/anatree
 git submodule update --init --recursive
 ```
 
