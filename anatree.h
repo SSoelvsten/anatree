@@ -38,10 +38,14 @@
 ///        similar) data structures, enabling quick access to all 'anagrams' of
 ///        each word (within or not).
 ///
-/// \tparam word_t Type for words, i.e. lists of elemnts. This type should have
-///                an interface similar to `std::string` / `std::vector<T>`.
+/// \tparam word_t      Type for words, i.e. lists of elemnts. This type should
+///                     provide the interface of `std::string`, such as
+///                     `std::basic_string<T>` and `std::vector<T>`.
 ///
-/// \todo Add 'ordering' tparam to something else than `std::less`.
+/// \tparam char_comp_t Ordering of the symbols within each word. The order has
+///                     a major impact on the size.
+///
+/// \tparam word_set_t  Type to be used for storing and returning sets of words.
 ////////////////////////////////////////////////////////////////////////////////
 template<typename word_t      = std::string,
          typename char_comp_t = std::less<typename word_t::value_type>,
