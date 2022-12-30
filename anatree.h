@@ -19,10 +19,17 @@
 #ifndef ANATREE_H
 #define ANATREE_H
 
-#include<algorithm>
+// 'assert(...)'
 #include<assert.h>
+
+// 'std::sort(...)'
+#include<algorithm>
+
+// 'std::shared_ptr' and 'std::stringstream' for 'anatree<>::node'
 #include<memory>
 #include<sstream>
+
+// 'std::string' and 'std::unordered_set' for 'anatree<...>' template parameters
 #include<string>
 #include<unordered_set>
 
@@ -30,18 +37,31 @@
 /// \brief A data structure capable of storing a set of 'std::string' (or
 ///        similar) data structures, enabling quick access to all 'anagrams' of
 ///        each word (within or not).
+///
+/// \tparam word_t Type for words, i.e. lists of elemnts. This type should have
+///                an interface similar to `std::string` / `std::vector<T>`.
+///
+/// \todo Add 'ordering' tparam to something else than `std::less`.
 ////////////////////////////////////////////////////////////////////////////////
-template<typename word_t = std::string, typename char_t = std::string::value_type>
+template<typename word_t      = std::string,
+         typename char_comp_t = std::less<typename word_t::value_type>,
+         typename word_set_t  = std::unordered_set<word_t>>
 class anatree
 {
 private:
   //////////////////////////////////////////////////////////////////////////////
+  /// \brief Type of each individual character.
+  //////////////////////////////////////////////////////////////////////////////
+  using char_t = typename word_t::value_type;
+
+private:
+  //////////////////////////////////////////////////////////////////////////////
   /// \brief Individual node of the Anatree.
-  ///////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
   class node
   {
   public:
-    typedef std::shared_ptr<node> ptr;
+    using ptr = std::shared_ptr<node>;
 
     static constexpr char_t NIL = 0;
 
@@ -62,7 +82,7 @@ private:
     ////////////////////////////////////////////////////////////////////////////
     /// \brief Set of words that are anagrams of the path up to this node.
     ////////////////////////////////////////////////////////////////////////////
-    std::unordered_set<word_t> m_words;
+    word_set_t m_words;
 
   public:
     ////////////////////////////////////////////////////////////////////////////
@@ -123,9 +143,20 @@ private:
 
 private:
   //////////////////////////////////////////////////////////////////////////////
+  /// \brief Alias for 'node::ptr' that allows omitting the 'typename' keyword.
+  //////////////////////////////////////////////////////////////////////////////
+  using node_ptr = typename node::ptr;
+
+private:
+  //////////////////////////////////////////////////////////////////////////////
+  /// \brief Comparator for characters.
+  //////////////////////////////////////////////////////////////////////////////
+  char_comp_t m_char_comp = char_comp_t();
+
+  //////////////////////////////////////////////////////////////////////////////
   /// \brief Root of the anatree (initially a NIL node).
   //////////////////////////////////////////////////////////////////////////////
-  typename node::ptr m_root = node::make_node();
+  node_ptr m_root = node::make_node();
 
   //////////////////////////////////////////////////////////////////////////////
   /// \brief Number of words stored within this tree.
@@ -141,7 +172,9 @@ public:
   //////////////////////////////////////////////////////////////////////////////
   /// \brief Constructor of an empty Anatree.
   //////////////////////////////////////////////////////////////////////////////
-  anatree() = default;
+  anatree(char_comp_t char_comp = char_comp_t())
+    : m_char_comp(char_comp)
+  { }
 
 public:
   //////////////////////////////////////////////////////////////////////////////
@@ -150,15 +183,16 @@ public:
   /// \warning Requires \f$O(N)\f$ time.
   //////////////////////////////////////////////////////////////////////////////
   anatree(const anatree &a)
-    : m_root(deep_copy(a.m_root))
+    : m_char_comp(a.m_char_comp)
+    , m_root(deep_copy(a.m_root))
     , m_size(a.m_size)
     , m_tree_size(a.m_tree_size)
   { }
 
 private:
   static
-  typename node::ptr
-  deep_copy(const typename node::ptr &p)
+  node_ptr
+  deep_copy(const node_ptr &p)
   {
     const auto np = node::make_node();
 
@@ -202,8 +236,8 @@ public:
   }
 
 private:
-  typename node::ptr
-  insert__rec(const typename node::ptr &p,
+  node_ptr
+  insert__rec(const node_ptr &p,
               const word_t &w,
               typename word_t::iterator curr,
               const typename word_t::iterator end)
@@ -232,10 +266,10 @@ private:
 
     // Case: Iterator behind
     // -> Insert new node in-between
-    if (*curr < p->m_char) {
+    if (m_char_comp(*curr, p->m_char)) {
       const auto np = node::make_node(*curr, p, node::make_node());
       np->m_words = p->m_words;
-      p->m_words = std::unordered_set<word_t>();
+      p->m_words = word_set_t();
       m_tree_size += 2; // <- new node and its NIL 'false' child
       np->m_children[true]  = insert__rec(np->m_children[true], w, ++curr, end);
       return np;
@@ -243,7 +277,7 @@ private:
 
     // Case: Iterator ahead
     // -> Follow 'false' child
-    if (p->m_char < *curr) {
+    if (m_char_comp(p->m_char, *curr)) {
       p->m_children[false] = insert__rec(p->m_children[false], w, curr, end);
       return p;
     }
@@ -273,21 +307,21 @@ public:
   ///
   /// \warning No functioning implementation is available!
   //////////////////////////////////////////////////////////////////////////////
-  typename std::unordered_set<word_t>
+  word_set_t
   keys() const
   {
-    std::unordered_set<word_t> filter;
-    return std::unordered_set<word_t>(); // <-- TODO
+    word_set_t filter;
+    return word_set_t(); // <-- TODO
   }
 
 private:
   // TODO
-  typename std::unordered_set<word_t>
-  keys__rec(const typename node::ptr p,
+  word_set_t
+  keys__rec(const node_ptr p,
             const word_t &path
-            /*std::unordered_set<word_t> filter*/) const
+            /*word_set_t filter*/) const
   {
-    std::unordered_set<word_t> ret;
+    word_set_t ret;
     return ret;
   }
 
@@ -298,21 +332,21 @@ public:
   ///
   /// \param word_length The length of the desired words
   //////////////////////////////////////////////////////////////////////////////
-  typename std::unordered_set<word_t>
+  word_set_t
   keys(const size_t word_length) const
   {
     return keys__rec(word_length, m_root, 0);
   }
 
 private:
-  typename std::unordered_set<word_t>
+  word_set_t
   keys__rec(const size_t word_length,
-            const typename node::ptr p,
+            const node_ptr p,
             const size_t true_edges) const
   {
     assert(true_edges <= word_length);
 
-    std::unordered_set<word_t> ret;
+    word_set_t ret;
 
     // Case: Found word of 'word_length'
     // -> Search succesful (no need to keep on searching deeper)
@@ -347,7 +381,7 @@ public:
   /// \details An anagram is a word that can be created from (all) the letters
   ///          of 'w'.
   //////////////////////////////////////////////////////////////////////////////
-  typename std::unordered_set<word_t>
+  word_set_t
   anagrams_of(const word_t &w) const
   {
     word_t key = sorted_word(w);
@@ -355,8 +389,8 @@ public:
   }
 
 private:
-  typename std::unordered_set<word_t>
-  anagrams_of__rec(const typename node::ptr p,
+  word_set_t
+  anagrams_of__rec(const node_ptr p,
                    typename word_t::iterator curr,
                    const typename word_t::iterator end) const
   {
@@ -367,13 +401,13 @@ private:
 
     // Case: Iterator behind or tree is done
     // -> No words with all letters exist, return Ø .
-    if (*curr < p->m_char || p->m_char == node::NIL) {
-      return std::unordered_set<word_t>();
+    if (m_char_comp(*curr, p->m_char) || p->m_char == node::NIL) {
+      return word_set_t();
     }
 
     // Case: Iterator ahead
     // -> Follow 'false' child
-    if (p->m_char < *curr) {
+    if (m_char_comp(p->m_char, *curr)) {
       return anagrams_of__rec(p->m_children[false], curr, end);
     }
 
@@ -389,7 +423,7 @@ public:
   /// \details A subanagram is a word that can be created from some (but not
   ///          necessarily all) letters of 'w'.
   //////////////////////////////////////////////////////////////////////////////
-  typename std::unordered_set<word_t>
+  word_set_t
   subanagrams_of(const word_t &w) const
   {
     word_t key = sorted_word(w);
@@ -397,8 +431,8 @@ public:
   }
 
 private:
-  typename std::unordered_set<word_t>
-  subanagrams_of__rec(const typename node::ptr p,
+  word_set_t
+  subanagrams_of__rec(const node_ptr p,
                       typename word_t::iterator curr,
                       const typename word_t::iterator end) const
   {
@@ -409,15 +443,15 @@ private:
 
     // Case: Iterator behind
     // -> Skip missing characters
-    if (*curr < p->m_char) {
-      while (*curr < p->m_char && curr != end) { ++curr; }
+    if (m_char_comp(*curr, p->m_char)) {
+      while (m_char_comp(*curr, p->m_char) && curr != end) { ++curr; }
       return subanagrams_of__rec(p, curr, end);
     }
 
     // Case: Iterator ahead
     // -> Follow 'false' child
-    if (p->m_char < *curr) {
-      std::unordered_set<word_t> ret(p->m_words);
+    if (m_char_comp(p->m_char, *curr)) {
+      word_set_t ret(p->m_words);
       const auto rec_false = subanagrams_of__rec(p->m_children[false], curr, end);
       ret.insert(rec_false.begin(), rec_false.end());
       return ret;
@@ -427,7 +461,7 @@ private:
     // -> Follow both children, merge results and add words on current node
     ++curr;
 
-    std::unordered_set<word_t> ret(p->m_words);
+    word_set_t ret(p->m_words);
     const auto rec_false = subanagrams_of__rec(p->m_children[false], curr, end);
     const auto rec_true = subanagrams_of__rec(p->m_children[true], curr, end);
     ret.insert(rec_false.begin(), rec_false.end());
@@ -482,7 +516,7 @@ private:
   word_t sorted_word(const word_t &w) const
   {
     word_t ret(w);
-    std::sort(ret.begin(), ret.end());
+    std::sort(ret.begin(), ret.end(), m_char_comp);
     return ret;
   }
 };
