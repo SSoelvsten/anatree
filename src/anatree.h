@@ -268,35 +268,75 @@ public:
 
 public:
   //////////////////////////////////////////////////////////////////////////////
-  /// \brief Obtain the minimal representative set words that cover all of the
-  ///        words contained within the Anatree.
+  /// \brief Obtain all words in the Anatree, excluding words that are a
+  ///        subanagram of another one returned.
   ///
-  /// \detail Each word in the Anatree is either in the returned result or it is
-  ///         a subanagram of some other word in the result.
+  /// \warning No functioning implementation is available!
   //////////////////////////////////////////////////////////////////////////////
   typename std::unordered_set<word_t>
   keys() const
   {
-    return keys__rec(m_root);
+    std::unordered_set<word_t> filter;
+    return std::unordered_set<word_t>(); // <-- TODO
+  }
+
+private:
+  // TODO
+  typename std::unordered_set<word_t>
+  keys__rec(const typename node::ptr p,
+            const word_t &path
+            /*std::unordered_set<word_t> filter*/) const
+  {
+    std::unordered_set<word_t> ret;
+    return ret;
+  }
+
+public:
+  //////////////////////////////////////////////////////////////////////////////
+  /// \brief Obtain all words in the Anatree of a certain length, excluding
+  ///        words that are a anagram of another one returned.
+  ///
+  /// \param word_length The length of the desired words
+  //////////////////////////////////////////////////////////////////////////////
+  typename std::unordered_set<word_t>
+  keys(const size_t word_length) const
+  {
+    return keys__rec(word_length, m_root, 0);
   }
 
 private:
   typename std::unordered_set<word_t>
-  keys__rec(const typename node::ptr p) const
+  keys__rec(const size_t word_length,
+            const typename node::ptr p,
+            const size_t true_edges) const
   {
+    assert(true_edges <= word_length);
+
     std::unordered_set<word_t> ret;
-    if (p->m_char == node::NIL) {
+
+    // Case: Found word of 'word_length'
+    // -> Search succesful (no need to keep on searching deeper)
+    if (word_length == true_edges) {
       if (p->m_words.size() > 0) {
         ret.insert(*p->m_words.begin());
       }
       return ret;
     }
 
-    const auto rec_true = keys__rec(p->m_children[true]);
+    // Case: Tree stopped early
+    // -> Abandon subtree
+    if (p->m_char == node::NIL) {
+      return ret;
+    }
+
+    // Case: Missing characters
+    // -> Merge recursively from false and true subtrees
+    const auto rec_true = keys__rec(word_length, p->m_children[true], true_edges+1);
     ret.insert(rec_true.begin(), rec_true.end());
 
-    const auto rec_false = keys__rec(p->m_children[false]);
+    const auto rec_false = keys__rec(word_length, p->m_children[false], true_edges);
     ret.insert(rec_false.begin(), rec_false.end());
+
     return ret;
   }
 

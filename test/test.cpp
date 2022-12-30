@@ -510,7 +510,35 @@ go_bandit([]() {
 
   // ---------------------------------------------------------------------------
   describe("insert(), keys()", []() {
-    it("can find representatives in { 'a', 'ab' }", []() {
+    it("can find keys in Ø", []() {
+      anatree<> a;
+
+      const auto res = a.keys();
+      AssertThat(res.empty(), Is().True());
+    });
+
+    it("can find keys in { '', 'a' }", []() {
+      anatree<> a;
+      a.insert("");
+      a.insert("a");
+
+      const auto res = a.keys();
+      AssertThat(res.size(), Is().EqualTo(1u));
+      AssertThat(res.contains("a"), Is().True());
+    });
+
+    it("can find keys in { 'a', 'b' }", []() {
+      anatree<> a;
+      a.insert("a");
+      a.insert("b");
+
+      const auto res = a.keys();
+      AssertThat(res.size(), Is().EqualTo(2u));
+      AssertThat(res.contains("a"), Is().True());
+      AssertThat(res.contains("b"), Is().True());
+    });
+
+    it("can find keys in { 'a', 'ab' }", []() {
       anatree<> a;
       a.insert("a");
       a.insert("ab");
@@ -520,7 +548,7 @@ go_bandit([]() {
       AssertThat(res.contains("ab"), Is().True());
     });
 
-    it("can find representatives in { 'a', 'b', 'ab' }", []() {
+    it("can find keys in { 'a', 'b', 'ab' }", []() {
       anatree<> a;
       a.insert("a");
       a.insert("ab");
@@ -531,7 +559,19 @@ go_bandit([]() {
       AssertThat(res.contains("ab"), Is().True());
     });
 
-    it("can find representatives in { 'do', 'dog', 'fog', 'god', 'gold', 'loo', 'odd', 'of', 'oo' }", []() {
+    it("can find keys in { 'a', 'b', 'aba', 'ab', 'bb' }", []() {
+      anatree<> a;
+      a.insert("a");
+      a.insert("ab");
+      a.insert("b");
+
+      const auto res = a.keys();
+      AssertThat(res.size(), Is().EqualTo(2u));
+      AssertThat(res.contains("bb"), Is().True());
+      AssertThat(res.contains("aba"), Is().True());
+    });
+
+    it("can find keys in { 'do', 'dog', 'fog', 'god', 'gold', 'loo', 'odd', 'of', 'oo' }", []() {
       anatree<> a;
       a.insert("do");
       a.insert("dog");
@@ -549,6 +589,103 @@ go_bandit([]() {
       AssertThat(res.contains("fog"), Is().True());
       AssertThat(res.contains("gold"), Is().True());
       AssertThat(res.contains("odd"), Is().True());
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  describe("insert(), keys(word_length)", []() {
+    it("can find 0-keys in Ø", []() {
+      anatree<> a;
+
+      const auto res = a.keys(0);
+      AssertThat(res.empty(), Is().True());
+    });
+
+    it("can find 1-keys in Ø", []() {
+      anatree<> a;
+
+      const auto res = a.keys(1);
+      AssertThat(res.empty(), Is().True());
+    });
+
+    it("can find 0-keys in { '', 'a' }", []() {
+      anatree<> a;
+      a.insert("");
+      a.insert("a");
+
+      const auto res = a.keys(0);
+      AssertThat(res.size(), Is().EqualTo(1u));
+      AssertThat(res.contains(""), Is().True());
+    });
+
+    it("can find 1-keys in { '', 'a' }", []() {
+      anatree<> a;
+      a.insert("");
+      a.insert("a");
+
+      const auto res = a.keys(1);
+      AssertThat(res.size(), Is().EqualTo(1u));
+      AssertThat(res.contains("a"), Is().True());
+    });
+
+    it("can find 1-keys in { 'a', 'ab', 'b' }", []() {
+      anatree<> a;
+      a.insert("a");
+      a.insert("ab");
+      a.insert("b");
+
+      const auto res = a.keys(1);
+      AssertThat(res.size(), Is().EqualTo(2u));
+      AssertThat(res.contains("a"), Is().True());
+      AssertThat(res.contains("b"), Is().True());
+    });
+
+    it("can find 2-keys in { 'a', 'ab', 'b' }", []() {
+      anatree<> a;
+      a.insert("a");
+      a.insert("ab");
+      a.insert("b");
+
+      const auto res = a.keys(2);
+      AssertThat(res.size(), Is().EqualTo(1u));
+      AssertThat(res.contains("ab"), Is().True());
+    });
+
+    it("can find 3-keys in { 'do', 'dog', 'fog', 'god', 'gold', 'loo', 'odd', 'of', 'oo' }", []() {
+      anatree<> a;
+      a.insert("do");
+      a.insert("dog");
+      a.insert("fog");
+      a.insert("god");
+      a.insert("gold");
+      a.insert("loo");
+      a.insert("odd");
+      a.insert("of");
+      a.insert("oo");
+
+      const auto res = a.keys(3);
+      AssertThat(res.size(), Is().EqualTo(4u));
+      AssertThat(res.contains("loo"), Is().True());
+      AssertThat(res.contains("fog"), Is().True());
+      AssertThat(res.contains("dog") ^ res.contains("god"), Is().True());
+      AssertThat(res.contains("odd"), Is().True());
+    });
+
+    it("can find 4-keys in { 'do', 'dog', 'fog', 'god', 'gold', 'loo', 'odd', 'of', 'oo' }", []() {
+      anatree<> a;
+      a.insert("do");
+      a.insert("dog");
+      a.insert("fog");
+      a.insert("god");
+      a.insert("gold");
+      a.insert("loo");
+      a.insert("odd");
+      a.insert("of");
+      a.insert("oo");
+
+      const auto res = a.keys(4);
+      AssertThat(res.size(), Is().EqualTo(1u));
+      AssertThat(res.contains("gold"), Is().True());
     });
   });
 
