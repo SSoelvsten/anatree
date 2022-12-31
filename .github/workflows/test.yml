@@ -1,0 +1,52 @@
+name: 'test'
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: 'Unit test (incl. code coverage)'
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
+
+    - name: Apt | install lcov
+      run: |
+        sudo apt update
+        sudo apt install lcov
+
+    - name: CMake | mkdir build
+      run: cmake -E make_directory ${{runner.workspace}}/build
+
+    - name: CMake | configure
+      working-directory: ${{runner.workspace}}/build
+      env:
+        C_FLAGS: "-g -O0 -Wall -fprofile-arcs -ftest-coverage"
+        EXE_LINKER_FLAGS: "-fprofile-arcs -ftest-coverage"
+      run: cmake $GITHUB_WORKSPACE -D CMAKE_BUILD_TYPE=DEBUG -D CMAKE_C_FLAGS="${C_FLAGS}" -D CMAKE_CXX_FLAGS="${C_FLAGS}" -D CMAKE_EXE_LINKER_FLAGS="${EXE_LINKER_FLAGS}" ..
+
+    - name: CMake | build unit tests
+      working-directory: ${{runner.workspace}}/build
+      run: cmake --build . --target anatree_test
+
+    - name: Run unit tests
+      working-directory: ${{runner.workspace}}/build
+      run: ./test/anatree_test --reporter=info --colorizer=light
+
+    - name: Generate code coverage report
+      working-directory: ${{runner.workspace}}
+      if: always()
+      run: |
+        lcov -c -d build/ -o ./coverage.info
+        lcov --remove coverage.info --output-file coverage.info "/usr/*" "*/external/*" "*test*"
+
+    - name: Upload report to Codecov.io
+      working-directory: ${{runner.workspace}}
+      if: always()
+      run: bash <(curl -s https://codecov.io/bash) -f coverage.info -t ${{ secrets.CODECOV_TOKEN }} || echo "Codecov did not collect coverage reports"

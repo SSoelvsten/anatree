@@ -6,3 +6,8 @@
 ######################
 # CMake
 build/
+
+######################
+# LCOV
+coverage.info
+test/report
