@@ -1,4 +1,4 @@
-.PHONY: help install uninstall test docs
+.PHONY: help clean install uninstall test docs
 
 help:
 	@echo "Anatree : A Fast Data Structure for Anagrams"
@@ -6,11 +6,18 @@ help:
 	@echo ""
 	@echo "Targets"
 	@echo "- help      : Prints this list of targets"
+	@echo "- clean     : Remove all build artifacts"
 	@echo "- install   : Install the library"
 	@echo "- uninstall : Uninstalls the library"
 	@echo "- docs      : Generate Doxygen documentation"
 	@echo "- test      : Compile and run unit tests"
 	@echo "- coverage  : Compile and run unit tests with coverage"
+
+# ============================================================================ #
+#  CLEAN
+# ============================================================================ #
+clean:
+	@rm -rf build
 
 # ============================================================================ #
 #  INSTALLATION INTO '/usr/local/include'

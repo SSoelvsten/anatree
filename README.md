@@ -20,6 +20,7 @@ For ease of use, we provide the following *make* targets.
 | Make Target | Description                           |
 |-------------|---------------------------------------|
 | `help`      | Prints out a list of all targets      |
+| `clean`     | Removes all build files               |
 | `install`   | Installs Anatree                      |
 | `uninstall` | Removes the installed files once more |
 | `test`      | Builds and runs the unit tests        |
