@@ -538,6 +538,24 @@ go_bandit([]() {
         AssertThat(res.empty(), Is().True());
       });
 
+      it("can find keys in { '' }", []() {
+        anatree<> a;
+        a.insert("");
+
+        const auto res = a.keys();
+        AssertThat(res.size(), Is().EqualTo(1u));
+        AssertThat(res.contains(""), Is().True());
+      });
+
+      it("can find keys in { 'a' }", []() {
+        anatree<> a;
+        a.insert("a");
+
+        const auto res = a.keys();
+        AssertThat(res.size(), Is().EqualTo(1u));
+        AssertThat(res.contains("a"), Is().True());
+      });
+
       it("can find keys in { '', 'a' }", []() {
         anatree<> a;
         a.insert("");
@@ -580,11 +598,35 @@ go_bandit([]() {
         AssertThat(res.contains("ab"), Is().True());
       });
 
+      it("can find keys in { 'a', 'aab', 'b' }", []() {
+        anatree<> a;
+        a.insert("a");
+        a.insert("aab");
+        a.insert("b");
+
+        const auto res = a.keys();
+        AssertThat(res.size(), Is().EqualTo(1u));
+        AssertThat(res.contains("aab"), Is().True());
+      });
+
+      it("can find keys in { 'ab', 'aab', 'b' }", []() {
+        anatree<> a;
+        a.insert("ab");
+        a.insert("aab");
+        a.insert("b");
+
+        const auto res = a.keys();
+        AssertThat(res.size(), Is().EqualTo(1u));
+        AssertThat(res.contains("aab"), Is().True());
+      });
+
       it("can find keys in { 'a', 'b', 'aba', 'ab', 'bb' }", []() {
         anatree<> a;
         a.insert("a");
-        a.insert("ab");
         a.insert("b");
+        a.insert("aba");
+        a.insert("ab");
+        a.insert("bb");
 
         const auto res = a.keys();
         AssertThat(res.size(), Is().EqualTo(2u));

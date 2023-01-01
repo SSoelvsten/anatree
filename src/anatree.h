@@ -29,9 +29,11 @@
 #include<memory>
 #include<sstream>
 
-// 'std::string' and 'std::unordered_set' for 'anatree<...>' template parameters
+// 'std::string', 'std::unordered_set', and 'std::unordered_map' for
+// 'anatree<...>' template parameters
 #include<string>
 #include<unordered_set>
+#include<unordered_map>
 
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief A data structure capable of storing a set of 'std::string' (or
@@ -49,7 +51,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 template<typename word_t      = std::string,
          typename char_comp_t = std::less<typename word_t::value_type>,
-         typename word_set_t  = std::unordered_set<word_t>>
+         typename word_set_t  = std::unordered_set<word_t>,
+         typename word_map_t  = std::unordered_map<word_t, word_t>>
 class anatree
 {
 private:
@@ -308,33 +311,101 @@ public:
   //////////////////////////////////////////////////////////////////////////////
   /// \brief Obtain all words in the Anatree, excluding words that are a
   ///        subanagram of another one returned.
-  ///
-  /// \warning No functioning implementation is available!
   //////////////////////////////////////////////////////////////////////////////
   word_set_t
   keys() const
   {
-    word_set_t filter;
-    return word_set_t(); // <-- TODO
+    const auto rec_result = keys__rec(m_root);
+    word_set_t ret;
+    for (const auto [_, v] : rec_result) {
+      ret.insert(v);
+    }
+    return ret;
   }
 
 private:
-  // TODO
-  word_set_t
-  keys__rec(const node_ptr p,
-            const word_t &path
-            /*word_set_t filter*/) const
+  word_map_t
+  keys__rec(const node_ptr p) const
   {
-    word_set_t ret;
+    // Case: Leaf of Tree
+    // -> Add a word, if any.
+    if (p->m_char == node::NIL) {
+      word_map_t ret;
+      if (p->m_words.size() > 0) {
+        ret[""] = *p->m_words.begin();
+      }
+      return ret;
+    }
+
+    // Case: Internal Node
+    // -> Recurse for words with and without this character
+    auto rec_true = keys__rec(p->m_children[true]);
+    auto rec_false = keys__rec(p->m_children[false]);
+
+    word_map_t ret;
+
+    // -> Copy over words excluding current node's character (except for ones
+    //    that are superseeded)
+    for (const auto [rec_false_k, rec_false_v] : rec_false) {
+      // Check whether the word is superseeded by any word in 'rec_true'.
+      // - (a) Simple O(1) case
+      if (rec_true.contains(rec_false_v)) { continue; }
+
+      // - (b) Expensive O(T) case
+      bool superseeded = false;
+      for (const auto [rec_true_k, _] : rec_true) {
+        int false_idx = rec_false_k.length() - 1;
+        int true_idx  = rec_true_k.length()  - 1;
+
+        while (0 <= false_idx && 0 <= true_idx) {
+          const char_t false_char = rec_false_k[false_idx];
+          const char_t true_char  = rec_true_k[true_idx];
+
+          if (m_char_comp(true_char, false_char)) {
+            true_idx--;
+            continue;
+          } else if (false_char == true_char) {
+            false_idx--;
+            true_idx--;
+            continue;
+          } else { // False includes character not in True path.
+            break;
+          }
+        }
+        if (false_idx < 0 && true_idx < 0) {
+          superseeded = true;
+          break;
+        }
+      }
+      if (superseeded) { continue; }
+
+      // Add word
+      std::string curr_key(rec_false_k);
+      curr_key.push_back(p->m_char);
+
+      assert(!ret.contains(curr_key));
+      ret[curr_key] = rec_false_v;
+    }
+    rec_false.clear(); // <-- Save on memory
+
+    // -> Copy over words including current node's character.
+    for (const auto [rec_k, rec_v] : rec_true) {
+      std::string curr_key(rec_k);
+      curr_key.push_back(p->m_char);
+
+      ret[curr_key] = rec_v;
+    }
+    // rec_true.clear(); // <-- Save on memory (unecessary)
+
     return ret;
   }
 
 public:
   //////////////////////////////////////////////////////////////////////////////
   /// \brief Obtain all words in the Anatree of a certain length, excluding
-  ///        words that are a anagram of another one returned.
+  ///        words that are an anagram of another one returned.
   ///
-  /// \param word_length The length of the desired words
+  /// \param word_length The length of the desired words.
   //////////////////////////////////////////////////////////////////////////////
   word_set_t
   keys(const size_t word_length) const
