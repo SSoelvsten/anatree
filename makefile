@@ -60,7 +60,7 @@ coverage:
                 ..
 	@cd build/ && make $(MAKE_FLAGS) anatree_test
 
-	@lcov --directory build/src/ --zerocounters
+	@lcov --directory build/anatree/ --zerocounters
 
 	@./build/test/anatree_test || echo ""
 
