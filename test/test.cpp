@@ -1,3 +1,5 @@
+#include <vector>
+
 // Import Unit Testing framework, Bandit
 #include <bandit/bandit.h>
 
@@ -13,7 +15,7 @@ using namespace bandit;
 go_bandit([]() {
   describe("anatree<std::string, std::less>", []() {
     // -------------------------------------------------------------------------
-    describe("insert(), tree_size(), size(), empty()", []() {
+    describe("insert(w), tree_size(), size(), empty()", []() {
       it("can report size of Ø", []() {
         anatree<> a;
 
@@ -226,7 +228,7 @@ go_bandit([]() {
     });
 
     // -------------------------------------------------------------------------
-    describe("insert(), contains()", []() {
+    describe("insert(w), contains()", []() {
       it("can insert { '' }", []() {
         anatree<> a;
         AssertThat(a.contains(""), Is().False());
@@ -351,7 +353,84 @@ go_bandit([]() {
     });
 
     // -------------------------------------------------------------------------
-    describe("insert(), anagrams_of()", []() {
+    describe("insert(begin, end), size(), contains()", []() {
+      it("can insert [] in Ø", []() {
+        anatree<> a;
+
+        std::vector<std::string> words = {};
+
+        AssertThat(a.size(), Is().EqualTo(0u));
+        a.insert(words.begin(), words.end());
+        AssertThat(a.size(), Is().EqualTo(0u));
+      });
+
+      it("can insert [ 'a', 'ab', 'b' ] in Ø", []() {
+        anatree<> a;
+
+        std::vector<std::string> words = { "a", "ab", "b" };
+
+        a.insert(words.begin(), words.end());
+
+        AssertThat(a.size(), Is().EqualTo(3u));
+        AssertThat(a.contains("a"), Is().True());
+        AssertThat(a.contains("ab"), Is().True());
+        AssertThat(a.contains("b"), Is().True());
+      });
+
+      it("can insert [] in { 'a' }", []() {
+        anatree<> a;
+        a.insert("a");
+
+        std::vector<std::string> words = {};
+        a.insert(words.begin(), words.end());
+
+        AssertThat(a.size(), Is().EqualTo(1u));
+        AssertThat(a.contains("a"), Is().True());
+      });
+
+      it("can insert ['b', 'a'] in { 'a' }", []() {
+        anatree<> a;
+        a.insert("a");
+
+        std::vector<std::string> words = { "b", "a" };
+        a.insert(words.begin(), words.end());
+
+        AssertThat(a.size(), Is().EqualTo(2u));
+        AssertThat(a.contains("a"), Is().True());
+        AssertThat(a.contains("b"), Is().True());
+      });
+
+      it("can insert ['', 'b'] in { 'a' }", []() {
+        anatree<> a;
+        a.insert("a");
+
+        std::vector<std::string> words = { "", "b" };
+        a.insert(words.begin(), words.end());
+
+        AssertThat(a.size(), Is().EqualTo(3u));
+        AssertThat(a.contains(""), Is().True());
+        AssertThat(a.contains("a"), Is().True());
+        AssertThat(a.contains("b"), Is().True());
+      });
+
+      it("can insert ['', 'ab'] in { 'a', 'b' }", []() {
+        anatree<> a;
+        a.insert("b");
+        a.insert("a");
+
+        std::vector<std::string> words = { "", "ab" };
+        a.insert(words.begin(), words.end());
+
+        AssertThat(a.size(), Is().EqualTo(4u));
+        AssertThat(a.contains(""), Is().True());
+        AssertThat(a.contains("a"), Is().True());
+        AssertThat(a.contains("b"), Is().True());
+        AssertThat(a.contains("ab"), Is().True());
+      });
+    });
+
+    // -------------------------------------------------------------------------
+    describe("insert(w), anagrams_of()", []() {
       it("can find anagrams of '' in Ø", []() {
         anatree<> a;
 
@@ -530,7 +609,7 @@ go_bandit([]() {
     });
 
     // -------------------------------------------------------------------------
-    describe("insert(), keys()", []() {
+    describe("insert(w), keys()", []() {
       it("can find keys in Ø", []() {
         anatree<> a;
 
@@ -656,7 +735,7 @@ go_bandit([]() {
     });
 
     // -------------------------------------------------------------------------
-    describe("insert(), keys(word_length)", []() {
+    describe("insert(w), keys(word_length)", []() {
       it("can find 0-keys in Ø", []() {
         anatree<> a;
 
@@ -753,7 +832,7 @@ go_bandit([]() {
     });
 
     // -------------------------------------------------------------------------
-    describe("insert(), subanagrams_of()", []() {
+    describe("insert(w), subanagrams_of()", []() {
       it("can find subanagrams of '' in Ø", []() {
         anatree<> a;
 
@@ -960,7 +1039,7 @@ go_bandit([]() {
   });
 
   describe("anatree<std::string, std::greater>", []() {
-    describe("insert(), tree_size(), size(), empty()", []() {
+    describe("insert(w), tree_size(), size(), empty()", []() {
       it("can report size of { 'abc', 'bc' }", []() {
         anatree<std::string, std::greater<char>> a;
         a.insert("bc");
