@@ -421,11 +421,11 @@ private:
   {
     assert(true_edges <= word_length);
 
-    word_set_t ret;
 
     // Case: Found word of 'word_length'
     // -> Search succesful (no need to keep on searching deeper)
     if (word_length == true_edges) {
+      word_set_t ret;
       if (p->m_words.size() > 0) {
         ret.insert(*p->m_words.begin());
       }
@@ -435,18 +435,16 @@ private:
     // Case: Tree stopped early
     // -> Abandon subtree
     if (p->m_char == node::NIL) {
-      return ret;
+      return word_set_t();
     }
 
     // Case: Missing characters
     // -> Merge recursively from false and true subtrees
-    const auto rec_true = keys__rec(word_length, p->m_children[true], true_edges+1);
-    ret.insert(rec_true.begin(), rec_true.end());
+    auto rec_true = keys__rec(word_length, p->m_children[true], true_edges+1);
+    auto rec_false = keys__rec(word_length, p->m_children[false], true_edges);
+    rec_true.insert(rec_false.begin(), rec_false.end());
 
-    const auto rec_false = keys__rec(word_length, p->m_children[false], true_edges);
-    ret.insert(rec_false.begin(), rec_false.end());
-
-    return ret;
+    return rec_true;
   }
 
 public:
