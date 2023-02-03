@@ -58,7 +58,7 @@ template<typename word_t      = std::string,
          typename word_set_t  = std::unordered_set<word_t>,
          typename word_map_t  = std::unordered_map<word_t, word_t>>
 requires std::copyable<word_t>
-//    && std::sortable<std::vector<typename word_t::value_type>, char_comp_t>
+      && std::sortable<typename word_t::iterator, char_comp_t>
       && std::equality_comparable<typename word_t::value_type>
       && std::totally_ordered<typename word_t::value_type>
 class anatree
