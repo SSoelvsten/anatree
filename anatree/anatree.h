@@ -35,6 +35,10 @@
 #include<unordered_set>
 #include<unordered_map>
 
+// C++20 concepts
+#include <concepts>
+#include <iterator>
+
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief A data structure capable of storing a set of 'std::string' (or
 ///        similar) data structures, enabling quick access to all 'anagrams' of
@@ -53,6 +57,10 @@ template<typename word_t      = std::string,
          typename char_comp_t = std::less<typename word_t::value_type>,
          typename word_set_t  = std::unordered_set<word_t>,
          typename word_map_t  = std::unordered_map<word_t, word_t>>
+requires std::copyable<word_t>
+//    && std::sortable<std::vector<typename word_t::value_type>, char_comp_t>
+      && std::equality_comparable<typename word_t::value_type>
+      && std::totally_ordered<typename word_t::value_type>
 class anatree
 {
 private:
@@ -70,6 +78,7 @@ private:
   public:
     using ptr = std::shared_ptr<node>;
 
+    // TODO: derive a non-useful value as 'NIL'.
     static constexpr char_t NIL = 0;
 
   public:
