@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.19)
 
 project (anatree
-  VERSION 1.0.0
+  VERSION 1.0.1
   DESCRIPTION "Anatree: A Fast Data Structure for Anagrams"
   HOMEPAGE_URL "https://github.com/ssoelvsten/anatree/"
   LANGUAGES CXX
