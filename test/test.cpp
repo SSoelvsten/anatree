@@ -196,7 +196,7 @@ go_bandit([]() {
         AssertThat(a1.contains("a"), Is().False());
       });
 
-      it("can nove-construct an empty Anatree", []() {
+      it("can move-construct an empty Anatree", []() {
         const auto a1_gen = []() {
           anatree<> a1;
           return a1;
@@ -210,7 +210,7 @@ go_bandit([]() {
         AssertThat(a2.tree_size(), Is().EqualTo(1u));
       });
 
-      it("can nove-construct a non-empty Anatree", []() {
+      it("can move-construct a non-empty Anatree", []() {
         const auto a1_gen = []() {
           anatree<> a1;
           a1.insert("b");
