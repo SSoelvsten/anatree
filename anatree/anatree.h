@@ -25,7 +25,7 @@
 // 'std::sort(...)'
 #include<algorithm>
 
-// 'std::shared_ptr' and 'std::stringstream' for 'anatree<>::node'
+// 'std::unique_ptr' and 'std::stringstream' for 'anatree<>::node'
 #include<memory>
 #include<sstream>
 
@@ -76,7 +76,7 @@ private:
   class node
   {
   public:
-    using ptr = std::shared_ptr<node>;
+    using ptr = std::unique_ptr<node>;
 
     // TODO: derive a non-useful value as 'NIL'.
     static constexpr char_t NIL = 0;
@@ -108,8 +108,8 @@ private:
     {
       assert(m_char == NIL && c != NIL);
       m_char = c;
-      m_children[false] = f_ptr ? f_ptr : std::make_shared<node>();
-      m_children[true]  = t_ptr ? t_ptr : std::make_shared<node>();
+      m_children[false] = f_ptr ? std::move(f_ptr) : make_node();
+      m_children[true]  = t_ptr ? std::move(t_ptr) : make_node();
     }
 
   public:
@@ -122,7 +122,7 @@ private:
     /// \brief Empty (NIL) ptr constructor
     ////////////////////////////////////////////////////////////////////////////
     static ptr make_node()
-    { return std::make_shared<node>(); }
+    { return std::make_unique<node>(); }
 
     ////////////////////////////////////////////////////////////////////////////
     /// \brief Copy constructor
@@ -133,13 +133,13 @@ private:
     /// \brief Non-nil ptr constructor
     ////////////////////////////////////////////////////////////////////////////
     node(const char_t c, ptr f_ptr = make_node(), ptr t_ptr = make_node())
-    { init(c, f_ptr, t_ptr); };
+    { init(c, std::move(f_ptr), std::move(t_ptr)); };
 
     ////////////////////////////////////////////////////////////////////////////
     /// \brief Non-nil constructor
     ////////////////////////////////////////////////////////////////////////////
     static ptr make_node(char_t c, ptr f_ptr = make_node(), ptr t_ptr = make_node())
-    { return std::make_shared<node>(c, f_ptr, t_ptr); }
+    { return std::make_unique<node>(c, std::move(f_ptr), std::move(t_ptr)); }
 
   public:
     ////////////////////////////////////////////////////////////////////////////
@@ -210,7 +210,7 @@ private:
   node_ptr
   deep_copy(const node_ptr &p)
   {
-    const auto np = node::make_node();
+    node_ptr np = node::make_node();
 
     // Case: NIL
     // -> Leave node as-is
@@ -228,7 +228,7 @@ private:
 
     // Copy over the set of words stored within this node.
     np->m_words = p->m_words;
-    return np;
+    return std::move(np);
   }
 
 public:
@@ -248,12 +248,12 @@ public:
   insert(const word_t &w)
   {
     word_t key = sorted_word(w);
-    m_root = insert__rec(m_root, w, key.begin(), key.end());
+    m_root = insert__rec(std::move(m_root), w, key.begin(), key.end());
   }
 
 private:
   node_ptr
-  insert__rec(const node_ptr &p,
+  insert__rec(node_ptr &&p,
               const word_t &w,
               typename word_t::iterator curr,
               const typename word_t::iterator end)
@@ -276,31 +276,33 @@ private:
       assert(p->m_children[false] == nullptr && p->m_children[true] == nullptr);
       p->init(*curr);
       m_tree_size += 2; // <- NIL 'false' and 'true' children
-      p->m_children[true] = insert__rec(p->m_children[true], w, ++curr, end);
+      p->m_children[true] = insert__rec(std::move(p->m_children[true]), w, ++curr, end);
       return p;
     }
 
     // Case: Iterator behind
     // -> Insert new node in-between
     if (m_char_comp(*curr, p->m_char)) {
-      const auto np = node::make_node(*curr, p, node::make_node());
-      np->m_words = p->m_words;
-      p->m_words = word_set_t();
+      // Hand over ownership of 'p' to a new node 'np'. The original node 'p' is
+      // now available as its 'false' child.
+      node_ptr np = node::make_node(*curr, std::move(p), node::make_node());
+      np->m_words = np->m_children[false]->m_words;
+      np->m_children[false]->m_words = word_set_t();
       m_tree_size += 2; // <- new node and its NIL 'false' child
-      np->m_children[true]  = insert__rec(np->m_children[true], w, ++curr, end);
-      return np;
+      np->m_children[true]  = insert__rec(std::move(np->m_children[true]), w, ++curr, end);
+      return std::move(np);
     }
 
     // Case: Iterator ahead
     // -> Follow 'false' child
     if (m_char_comp(p->m_char, *curr)) {
-      p->m_children[false] = insert__rec(p->m_children[false], w, curr, end);
+      p->m_children[false] = insert__rec(std::move(p->m_children[false]), w, curr, end);
       return p;
     }
 
     // Case: Iterator and node matches
     // -> Follow 'true' child
-    p->m_children[true] = insert__rec(p->m_children[true], w, ++curr, end);
+    p->m_children[true] = insert__rec(std::move(p->m_children[true]), w, ++curr, end);
     return p;
   }
 
@@ -345,7 +347,7 @@ public:
 
 private:
   word_map_t
-  keys__rec(const node_ptr p) const
+  keys__rec(const node_ptr &p) const
   {
     // Case: Leaf of Tree
     // -> Add a word, if any.
@@ -436,7 +438,7 @@ public:
 private:
   word_set_t
   keys__rec(const size_t word_length,
-            const node_ptr p,
+            const node_ptr &p,
             const size_t true_edges) const
   {
     assert(true_edges <= word_length);
@@ -483,7 +485,7 @@ public:
 
 private:
   word_set_t
-  anagrams_of__rec(const node_ptr p,
+  anagrams_of__rec(const node_ptr &p,
                    typename word_t::iterator curr,
                    const typename word_t::iterator end) const
   {
@@ -525,7 +527,7 @@ public:
 
 private:
   word_set_t
-  subanagrams_of__rec(const node_ptr p,
+  subanagrams_of__rec(const node_ptr &p,
                       typename word_t::iterator curr,
                       const typename word_t::iterator end) const
   {
