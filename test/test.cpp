@@ -430,6 +430,41 @@ go_bandit([]() {
     });
 
     // -------------------------------------------------------------------------
+    describe("insert(w), has_anagram_of()", []() {
+      it("does not contain an anagram of 'b' after insert of 'a'", []() {
+        anatree<> a;
+        AssertThat(a.has_anagram_of("b"), Is().False());
+
+        a.insert("a");
+        AssertThat(a.has_anagram_of("b"), Is().False());
+      });
+
+      it("contains an anagram of 'a' after insert of 'a'", []() {
+        anatree<> a;
+        AssertThat(a.has_anagram_of("a"), Is().False());
+
+        a.insert("a");
+        AssertThat(a.has_anagram_of("a"), Is().True());
+      });
+
+      it("contains an anagram of 'ab' after insert of 'ba'", []() {
+        anatree<> a;
+        AssertThat(a.has_anagram_of("ab"), Is().False());
+
+        a.insert("ba");
+        AssertThat(a.has_anagram_of("ab"), Is().True());
+      });
+
+      it("does not contain an anagram of 'a' after insert of 'ab'", []() {
+        anatree<> a;
+        AssertThat(a.has_anagram_of("a"), Is().False());
+
+        a.insert("ab");
+        AssertThat(a.has_anagram_of("a"), Is().False());
+      });
+    });
+
+    // -------------------------------------------------------------------------
     describe("insert(w), anagrams_of()", []() {
       it("can find anagrams of '' in Ø", []() {
         anatree<> a;

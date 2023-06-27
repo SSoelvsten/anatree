@@ -476,6 +476,20 @@ private:
 
 public:
   //////////////////////////////////////////////////////////////////////////////
+  /// \brief Whether there exists an anagrams of 'w'.
+  ///
+  /// \details An anagram is a word that can be created from (all) the letters
+  ///          of 'w'.
+  //////////////////////////////////////////////////////////////////////////////
+  bool
+  has_anagram_of(const word_t &w) const
+  {
+    const node_ptr& n = find_node(w);
+    return n && n->m_words.size() > 0;
+  }
+
+public:
+  //////////////////////////////////////////////////////////////////////////////
   /// \brief Obtain all words that are anagrams of 'w'.
   ///
   /// \details An anagram is a word that can be created from (all) the letters
