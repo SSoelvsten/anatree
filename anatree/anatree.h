@@ -184,6 +184,11 @@ private:
   //////////////////////////////////////////////////////////////////////////////
   size_t m_tree_size = 1u;
 
+  //////////////////////////////////////////////////////////////////////////////
+  /// \brief Unique `null` pointer to have a *no* return value.
+  //////////////////////////////////////////////////////////////////////////////
+  const node_ptr m_null = nullptr;
+
 public:
   //////////////////////////////////////////////////////////////////////////////
   /// \brief Constructor of an empty Anatree.
@@ -479,36 +484,8 @@ public:
   word_set_t
   anagrams_of(const word_t &w) const
   {
-    word_t key = sorted_word(w);
-    return anagrams_of__rec(m_root, key.begin(), key.end());
-  }
-
-private:
-  word_set_t
-  anagrams_of__rec(const node_ptr &p,
-                   typename word_t::iterator curr,
-                   const typename word_t::iterator end) const
-  {
-    // Case: Iterator is done
-    if (curr == end) {
-      return p->m_words;
-    }
-
-    // Case: Iterator behind or tree is done
-    // -> No words with all letters exist, return Ø .
-    if (m_char_comp(*curr, p->m_char) || p->m_char == node::NIL) {
-      return word_set_t();
-    }
-
-    // Case: Iterator ahead
-    // -> Follow 'false' child
-    if (m_char_comp(p->m_char, *curr)) {
-      return anagrams_of__rec(p->m_children[false], curr, end);
-    }
-
-    // Case: Iterator and node matches
-    // -> Follow 'true' child
-    return anagrams_of__rec(p->m_children[true], ++curr, end);
+    const node_ptr& n = find_node(w);
+    return n ? n->m_words : word_set_t();
   }
 
 public:
@@ -571,7 +548,8 @@ public:
   bool
   contains(const word_t &w) const
   {
-    return anagrams_of(w).contains(w);
+    const node_ptr &n = find_node(w);
+    return n && n->m_words.contains(w);
   }
 
 public:
@@ -613,6 +591,44 @@ private:
     word_t ret(w);
     std::sort(ret.begin(), ret.end(), m_char_comp);
     return ret;
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+  /// \brief Traverses the anatree in search of the node corresponding to `w`.
+  ///
+  /// \returns Immutable reference to the node in the tree. If there is none,
+  ///          then it returns `m_null`.
+  /////////////////////////////////////////////////////////////////////////////
+  const node_ptr& find_node(const word_t w) const
+  {
+    word_t key = sorted_word(w);
+    return find_node__rec(m_root, key.begin(), key.end());
+  }
+
+  const node_ptr& find_node__rec(const node_ptr &p,
+                                 typename word_t::iterator curr,
+                                 const typename word_t::iterator end) const
+  {
+    // Case: Iterator is done
+    if (curr == end) {
+      return p;
+    }
+
+    // Case: Iterator behind or tree is done
+    // -> No words with all letters exist, return Ø .
+    if (m_char_comp(*curr, p->m_char) || p->m_char == node::NIL) {
+      return m_null;
+    }
+
+    // Case: Iterator ahead
+    // -> Follow 'false' child
+    if (m_char_comp(p->m_char, *curr)) {
+      return find_node__rec(p->m_children[false], curr, end);
+    }
+
+    // Case: Iterator and node matches
+    // -> Follow 'true' child
+    return find_node__rec(p->m_children[true], ++curr, end);
   }
 };
 
