@@ -44,30 +44,32 @@
 ///        similar) data structures, enabling quick access to all 'anagrams' of
 ///        each word (within or not).
 ///
-/// \tparam word_t      Type for words, i.e. lists of elemnts. This type should
-///                     provide the interface of `std::string`, such as
-///                     `std::basic_string<T>` and `std::vector<T>`.
+/// \tparam T       Type for words, i.e. lists of elemnts. This type should
+///                 provide the interface of `std::string`, such as
+///                 `std::basic_string<_>` and `std::vector<_>`.
 ///
-/// \tparam char_comp_t Ordering of the symbols within each word. The order has
-///                     a major impact on the size.
+/// \tparam Compare Ordering of the symbols within each word. The order has a
+///                 major impact on the size.
 ///
-/// \tparam word_set_t  Type to be used for storing and returning sets of words.
+/// \tparam Set     Type to be used for storing and returning sets of words.
+///
+/// \tparam Map     Type to be used for storing pairs `T`.
 ////////////////////////////////////////////////////////////////////////////////
-template<typename word_t      = std::string,
-         typename char_comp_t = std::less<typename word_t::value_type>,
-         typename word_set_t  = std::unordered_set<word_t>,
-         typename word_map_t  = std::unordered_map<word_t, word_t>>
-requires std::copyable<word_t>
-      && std::sortable<typename word_t::iterator, char_comp_t>
-      && std::equality_comparable<typename word_t::value_type>
-      && std::totally_ordered<typename word_t::value_type>
+template<typename T       = std::string,
+         typename Compare = std::less<typename T::value_type>,
+         typename Set     = std::unordered_set<T>,
+         typename Map     = std::unordered_map<T, T>>
+requires std::copyable<T>
+      && std::sortable<typename T::iterator, Compare>
+      && std::equality_comparable<typename T::value_type>
+      && std::totally_ordered<typename T::value_type>
 class anatree
 {
 private:
   //////////////////////////////////////////////////////////////////////////////
   /// \brief Type of each individual character.
   //////////////////////////////////////////////////////////////////////////////
-  using char_t = typename word_t::value_type;
+  using value_type = typename T::value_type;
 
 private:
   //////////////////////////////////////////////////////////////////////////////
@@ -79,13 +81,13 @@ private:
     using ptr = std::unique_ptr<node>;
 
     // TODO: derive a non-useful value as 'NIL'.
-    static constexpr char_t NIL = 0;
+    static constexpr value_type NIL = 0;
 
   public:
     ////////////////////////////////////////////////////////////////////////////
     /// \brief Character in this node
     ////////////////////////////////////////////////////////////////////////////
-    char_t m_char = NIL;
+    value_type m_char = NIL;
 
     ////////////////////////////////////////////////////////////////////////////
     /// \brief Binary choice on children.
@@ -98,13 +100,13 @@ private:
     ////////////////////////////////////////////////////////////////////////////
     /// \brief Set of words that are anagrams of the path up to this node.
     ////////////////////////////////////////////////////////////////////////////
-    word_set_t m_words;
+    Set m_words;
 
   public:
     ////////////////////////////////////////////////////////////////////////////
     /// \brief Initialize a NIL node
     ////////////////////////////////////////////////////////////////////////////
-    void init(char_t c, ptr f_ptr = nullptr, ptr t_ptr = nullptr)
+    void init(value_type c, ptr f_ptr = nullptr, ptr t_ptr = nullptr)
     {
       assert(m_char == NIL && c != NIL);
       m_char = c;
@@ -132,13 +134,13 @@ private:
     ////////////////////////////////////////////////////////////////////////////
     /// \brief Non-nil ptr constructor
     ////////////////////////////////////////////////////////////////////////////
-    node(const char_t c, ptr f_ptr = make_node(), ptr t_ptr = make_node())
+    node(const value_type c, ptr f_ptr = make_node(), ptr t_ptr = make_node())
     { init(c, std::move(f_ptr), std::move(t_ptr)); };
 
     ////////////////////////////////////////////////////////////////////////////
     /// \brief Non-nil constructor
     ////////////////////////////////////////////////////////////////////////////
-    static ptr make_node(char_t c, ptr f_ptr = make_node(), ptr t_ptr = make_node())
+    static ptr make_node(value_type c, ptr f_ptr = make_node(), ptr t_ptr = make_node())
     { return std::make_unique<node>(c, std::move(f_ptr), std::move(t_ptr)); }
 
   public:
@@ -163,7 +165,7 @@ private:
   //////////////////////////////////////////////////////////////////////////////
   /// \brief Comparator for characters.
   //////////////////////////////////////////////////////////////////////////////
-  char_comp_t m_char_comp = char_comp_t();
+  Compare m_char_comp = Compare();
 
   //////////////////////////////////////////////////////////////////////////////
   /// \brief Root of the anatree (initially a NIL node).
@@ -189,7 +191,8 @@ public:
   //////////////////////////////////////////////////////////////////////////////
   /// \brief Constructor of an empty Anatree.
   //////////////////////////////////////////////////////////////////////////////
-  anatree(char_comp_t char_comp = char_comp_t())
+  constexpr
+  anatree(Compare char_comp = Compare())
     : m_char_comp(char_comp)
   { }
 
@@ -199,6 +202,7 @@ public:
   ///
   /// \warning Requires \f$O(N)\f$ time.
   //////////////////////////////////////////////////////////////////////////////
+  constexpr
   anatree(const anatree &a)
     : m_char_comp(a.m_char_comp)
     , m_root(deep_copy(a.m_root))
@@ -236,28 +240,40 @@ public:
   //////////////////////////////////////////////////////////////////////////////
   /// \brief Move-constructor, taking over ownership of the other's tree.
   //////////////////////////////////////////////////////////////////////////////
+  constexpr
   anatree(anatree&&) = default;
 
-  // TODO with iterator:
-  // template<class InputIt> anatree(InputIt first, InputIt last)
+public:
+  //////////////////////////////////////////////////////////////////////////////
+  /// \brief Contruct a tree containing all of the given words.
+  //////////////////////////////////////////////////////////////////////////////
+  template <typename InputIt>
+  requires std::input_iterator<InputIt>
+        && std::is_convertible<typename InputIt::value_type, T>::value
+  constexpr
+  anatree(InputIt first, InputIt last)
+    : anatree()
+  {
+    insert(first, last);
+  }
 
 public:
   //////////////////////////////////////////////////////////////////////////////
   /// \brief Adds the word 'w' to the anatree.
   //////////////////////////////////////////////////////////////////////////////
   void
-  insert(const word_t &w)
+  insert(const T &w)
   {
-    word_t key = sorted_word(w);
+    T key = sorted_word(w);
     m_root = insert__rec(std::move(m_root), w, key.begin(), key.end());
   }
 
 private:
   node_ptr
   insert__rec(node_ptr &&p,
-              const word_t &w,
-              typename word_t::iterator curr,
-              const typename word_t::iterator end)
+              const T &w,
+              typename T::iterator curr,
+              const typename T::iterator end)
   {
     assert(p != nullptr);
 
@@ -288,7 +304,7 @@ private:
       // now available as its 'false' child.
       node_ptr np = node::make_node(*curr, std::move(p), node::make_node());
       np->m_words = np->m_children[false]->m_words;
-      np->m_children[false]->m_words = word_set_t();
+      np->m_children[false]->m_words = Set();
       m_tree_size += 2; // <- new node and its NIL 'false' child
       np->m_children[true]  = insert__rec(std::move(np->m_children[true]), w, ++curr, end);
       return std::move(np);
@@ -311,9 +327,11 @@ public:
   //////////////////////////////////////////////////////////////////////////////
   /// \brief Adds the words to the anatree as per the iterator.
   //////////////////////////////////////////////////////////////////////////////
-  template<typename IT>
+  template<typename InputIt>
+  requires std::input_iterator<InputIt>
+        && std::is_convertible<typename InputIt::value_type, T>::value
   void
-  insert(IT begin, IT end)
+  insert(InputIt begin, InputIt end)
   {
     while (begin != end) { insert(*(begin++)); }
   }
@@ -335,11 +353,11 @@ public:
   /// \brief Obtain all words in the Anatree, excluding words that are a
   ///        subanagram of another one returned.
   //////////////////////////////////////////////////////////////////////////////
-  word_set_t
+  Set
   keys() const
   {
     const auto rec_result = keys__rec(m_root);
-    word_set_t ret;
+    Set ret;
     for (const auto [_, v] : rec_result) {
       ret.insert(v);
     }
@@ -347,13 +365,13 @@ public:
   }
 
 private:
-  word_map_t
+  Map
   keys__rec(const node_ptr &p) const
   {
     // Case: Leaf of Tree
     // -> Add a word, if any.
     if (p->m_char == node::NIL) {
-      word_map_t ret;
+      Map ret;
       if (p->m_words.size() > 0) {
         ret[{}] = *p->m_words.begin();
       }
@@ -365,7 +383,7 @@ private:
     auto rec_true = keys__rec(p->m_children[true]);
     auto rec_false = keys__rec(p->m_children[false]);
 
-    word_map_t ret;
+    Map ret;
 
     // -> Copy over words excluding current node's character (except for ones
     //    that are superseeded)
@@ -381,8 +399,8 @@ private:
         int true_idx  = rec_true_k.length()  - 1;
 
         while (0 <= false_idx && 0 <= true_idx) {
-          const char_t false_char = rec_false_k[false_idx];
-          const char_t true_char  = rec_true_k[true_idx];
+          const value_type false_char = rec_false_k[false_idx];
+          const value_type true_char  = rec_true_k[true_idx];
 
           if (m_char_comp(true_char, false_char)) {
             true_idx--;
@@ -403,7 +421,7 @@ private:
       if (superseeded) { continue; }
 
       // Add word
-      word_t curr_key(rec_false_k);
+      T curr_key(rec_false_k);
       curr_key.push_back(p->m_char);
 
       assert(!ret.contains(curr_key));
@@ -413,7 +431,7 @@ private:
 
     // -> Copy over words including current node's character.
     for (const auto [rec_k, rec_v] : rec_true) {
-      word_t curr_key(rec_k);
+      T curr_key(rec_k);
       curr_key.push_back(p->m_char);
 
       ret[curr_key] = rec_v;
@@ -430,14 +448,14 @@ public:
   ///
   /// \param word_length The length of the desired words.
   //////////////////////////////////////////////////////////////////////////////
-  word_set_t
+  Set
   keys(const size_t word_length) const
   {
     return keys__rec(word_length, m_root, 0);
   }
 
 private:
-  word_set_t
+  Set
   keys__rec(const size_t word_length,
             const node_ptr &p,
             const size_t true_edges) const
@@ -448,7 +466,7 @@ private:
     // Case: Found word of 'word_length'
     // -> Search succesful (no need to keep on searching deeper)
     if (word_length == true_edges) {
-      word_set_t ret;
+      Set ret;
       if (p->m_words.size() > 0) {
         ret.insert(*p->m_words.begin());
       }
@@ -458,7 +476,7 @@ private:
     // Case: Tree stopped early
     // -> Abandon subtree
     if (p->m_char == node::NIL) {
-      return word_set_t();
+      return Set();
     }
 
     // Case: Missing characters
@@ -478,7 +496,7 @@ public:
   ///          of 'w'.
   //////////////////////////////////////////////////////////////////////////////
   bool
-  has_anagram_of(const word_t &w) const
+  has_anagram_of(const T &w) const
   {
     const node_ptr& n = find_node(w);
     return n && n->m_words.size() > 0;
@@ -491,11 +509,11 @@ public:
   /// \details An anagram is a word that can be created from (all) the letters
   ///          of 'w'.
   //////////////////////////////////////////////////////////////////////////////
-  word_set_t
-  anagrams_of(const word_t &w) const
+  Set
+  anagrams_of(const T &w) const
   {
     const node_ptr& n = find_node(w);
-    return n ? n->m_words : word_set_t();
+    return n ? n->m_words : Set();
   }
 
 public:
@@ -505,18 +523,18 @@ public:
   /// \details A subanagram is a word that can be created from some (but not
   ///          necessarily all) letters of 'w'.
   //////////////////////////////////////////////////////////////////////////////
-  word_set_t
-  subanagrams_of(const word_t &w) const
+  Set
+  subanagrams_of(const T &w) const
   {
-    word_t key = sorted_word(w);
+    T key = sorted_word(w);
     return subanagrams_of__rec(m_root, key.begin(), key.end());
   }
 
 private:
-  word_set_t
+  Set
   subanagrams_of__rec(const node_ptr &p,
-                      typename word_t::iterator curr,
-                      const typename word_t::iterator end) const
+                      typename T::iterator curr,
+                      const typename T::iterator end) const
   {
     // Case: Iterator or Anatree is done
     if (curr == end || p->m_char == node::NIL) {
@@ -533,7 +551,7 @@ private:
     // Case: Iterator ahead
     // -> Follow 'false' child
     if (m_char_comp(p->m_char, *curr)) {
-      word_set_t ret(p->m_words);
+      Set ret(p->m_words);
       const auto rec_false = subanagrams_of__rec(p->m_children[false], curr, end);
       ret.insert(rec_false.begin(), rec_false.end());
       return ret;
@@ -543,7 +561,7 @@ private:
     // -> Follow both children, merge results and add words on current node
     ++curr;
 
-    word_set_t ret(p->m_words);
+    Set ret(p->m_words);
     const auto rec_false = subanagrams_of__rec(p->m_children[false], curr, end);
     const auto rec_true = subanagrams_of__rec(p->m_children[true], curr, end);
     ret.insert(rec_false.begin(), rec_false.end());
@@ -556,7 +574,7 @@ public:
   /// \brief Whether the Anatree includes the word 'w'.
   //////////////////////////////////////////////////////////////////////////////
   bool
-  contains(const word_t &w) const
+  contains(const T &w) const
   {
     const node_ptr &n = find_node(w);
     return n && n->m_words.contains(w);
@@ -596,9 +614,9 @@ private:
   //////////////////////////////////////////////////////////////////////////////
   /// \brief Creates a copy of the word 'w' with its characters sorted.
   //////////////////////////////////////////////////////////////////////////////
-  word_t sorted_word(const word_t &w) const
+  T sorted_word(const T &w) const
   {
-    word_t ret(w);
+    T ret(w);
     std::sort(ret.begin(), ret.end(), m_char_comp);
     return ret;
   }
@@ -609,15 +627,15 @@ private:
   /// \returns Immutable reference to the node in the tree. If there is none,
   ///          then it returns `m_null`.
   /////////////////////////////////////////////////////////////////////////////
-  const node_ptr& find_node(const word_t w) const
+  const node_ptr& find_node(const T w) const
   {
-    word_t key = sorted_word(w);
+    T key = sorted_word(w);
     return find_node__rec(m_root, key.begin(), key.end());
   }
 
   const node_ptr& find_node__rec(const node_ptr &p,
-                                 typename word_t::iterator curr,
-                                 const typename word_t::iterator end) const
+                                 typename T::iterator curr,
+                                 const typename T::iterator end) const
   {
     // Case: Iterator is done
     if (curr == end) {
