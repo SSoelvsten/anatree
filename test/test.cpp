@@ -1081,19 +1081,101 @@ go_bandit([]() {
         a.insert("abc");
 
         /*      (c)
-         *      / \
-         *     . (b)
-         *       / \
-         *   [bc]. (a)
-         *         / \
-         *         . .[abc]
-         */
+        //      / \
+        //     . (b)
+        //       / \
+        //   [bc]. (a)
+        //         / \
+        //         . .[abc]
+        */
 
         AssertThat(a.size(), Is().EqualTo(2u));
         AssertThat(a.empty(), Is().False());
 
         AssertThat(a.tree_size(), Is().EqualTo(7u));
       });
+    });
+  });
+
+  describe("anatree<std::wstring, ...>", []() {
+    anatree<std::wstring> a;
+
+    it("is initially empty", [&a]() {
+      AssertThat(a.empty(), Is().True());
+    });
+
+    it("can insert 'do', 'dog', 'fog', 'god', 'gold'", [&a]() {
+      a.insert(L"do");
+      a.insert(L"dog");
+      a.insert(L"fog");
+      a.insert(L"god");
+      a.insert(L"gold");
+
+      AssertThat(a.size(), Is().EqualTo(5u));
+      AssertThat(a.empty(), Is().False());
+
+      AssertThat(a.tree_size(), Is().EqualTo(19u));
+    });
+
+    it("can find anagrams of 'dog'", [&a]() {
+      const auto res = a.anagrams_of(L"dog");
+      AssertThat(res.size(), Is().EqualTo(2u));
+      AssertThat(res.contains(L"dog"), Is().True());
+      AssertThat(res.contains(L"god"), Is().True());
+    });
+
+    it("can find anagrams of 'god'", [&a]() {
+      const auto res = a.anagrams_of(L"dog");
+      AssertThat(res.size(), Is().EqualTo(2u));
+      AssertThat(res.contains(L"dog"), Is().True());
+      AssertThat(res.contains(L"god"), Is().True());
+    });
+
+    it("can find subanagrams of 'gold'", [&a]() {
+      const auto res = a.subanagrams_of(L"gold");
+      AssertThat(res.size(), Is().EqualTo(4u));
+      AssertThat(res.contains(L"gold"), Is().True());
+      AssertThat(res.contains(L"dog"), Is().True());
+      AssertThat(res.contains(L"god"), Is().True());
+      AssertThat(res.contains(L"do"), Is().True());
+    });
+  });
+
+  describe("anatree<std::u8string, ...>", []() {
+    anatree<std::u8string> a;
+
+    it("it can construct { 'ø', 'øm', 'øse', 'søm', 'møs', 'søn' }", [&a]() {
+      AssertThat(a.empty(), Is().True());
+
+      a.insert(u8"ø");
+      a.insert(u8"øm");
+      a.insert(u8"øse");
+      a.insert(u8"søm");
+      a.insert(u8"møs");
+      a.insert(u8"søn");
+      a.insert(u8"mø");
+
+      AssertThat(a.size(), Is().EqualTo(7u));
+      AssertThat(a.empty(), Is().False());
+
+      AssertThat(a.tree_size(), Is().EqualTo(33u));
+    });
+
+    it("it can find anagrams of 'søm'", [&a]() {
+      const auto res = a.anagrams_of(u8"søm");
+      AssertThat(res.size(), Is().EqualTo(2u));
+      AssertThat(res.contains(u8"søm"), Is().True());
+      AssertThat(res.contains(u8"møs"), Is().True());
+    });
+
+    it("it can find subanagrams of 'søm'", [&a]() {
+      const auto res = a.subanagrams_of(u8"søm");
+      AssertThat(res.size(), Is().EqualTo(5u));
+      AssertThat(res.contains(u8"søm"), Is().True());
+      AssertThat(res.contains(u8"møs"), Is().True());
+      AssertThat(res.contains(u8"mø"), Is().True());
+      AssertThat(res.contains(u8"øm"), Is().True());
+      AssertThat(res.contains(u8"ø"), Is().True());
     });
   });
  });
