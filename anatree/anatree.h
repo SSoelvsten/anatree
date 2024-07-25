@@ -243,8 +243,17 @@ public:
   constexpr
   anatree(anatree&&) = default;
 
-  // TODO with iterator:
-  // template<class InputIt> anatree(InputIt first, InputIt last)
+public:
+  //////////////////////////////////////////////////////////////////////////////
+  /// \brief Contruct a tree containing all of the given words.
+  //////////////////////////////////////////////////////////////////////////////
+  template <typename InputIt>
+  constexpr
+  anatree(InputIt first, InputIt last)
+    : anatree()
+  {
+    insert(first, last);
+  }
 
 public:
   //////////////////////////////////////////////////////////////////////////////

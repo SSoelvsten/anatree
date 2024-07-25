@@ -109,13 +109,13 @@ go_bandit([]() {
         a.insert("abc");
 
         /*      _(a)_
-         *     /     \
-         *   (b)     (b)
-         *  /   \   /   \
-         *  .  (c)  .   (c)
-         *     / \      / \
-         *     . .[abc] . .[bc]
-         */
+        //     /     \
+        //   (b)     (b)
+        //  /   \   /   \
+        //  .  (c)  .   (c)
+        //     / \      / \
+        //     . .[abc] . .[bc]
+        */
 
         AssertThat(a.size(), Is().EqualTo(2u));
         AssertThat(a.empty(), Is().False());
@@ -224,6 +224,50 @@ go_bandit([]() {
         AssertThat(a2.empty(), Is().False());
 
         AssertThat(a2.tree_size(), Is().EqualTo(7u));
+      });
+
+      it("can iterator-construct from {}", []() {
+        std::vector<std::string> inputs = {};
+
+        anatree<> a(inputs.begin(), inputs.end());
+
+        AssertThat(a.size(), Is().EqualTo(0u));
+        AssertThat(a.empty(), Is().True());
+
+        AssertThat(a.tree_size(), Is().EqualTo(1u));
+      });
+
+      it("can iterator-construct from { 'a', '', 'b' }", []() {
+        std::vector<std::string> inputs = { "a", "", "b" };
+
+        anatree<> a(inputs.begin(), inputs.end());
+
+        AssertThat(a.size(), Is().EqualTo(3u));
+        AssertThat(a.empty(), Is().False());
+
+        AssertThat(a.tree_size(), Is().EqualTo(5u));
+      });
+
+      it("can iterator-construct from { 'a', '', 'ab', 'b' }", []() {
+        std::vector<std::string> inputs = { "a", "", "ab", "b" };
+
+        anatree<> a(inputs.begin(), inputs.end());
+
+        AssertThat(a.size(), Is().EqualTo(4u));
+        AssertThat(a.empty(), Is().False());
+
+        AssertThat(a.tree_size(), Is().EqualTo(7u));
+      });
+
+      it("can iterator-construct from { 'abc', 'bc' }", []() {
+        std::vector<std::string> inputs = { "abc", "bc" };
+
+        anatree<> a(inputs.begin(), inputs.end());
+
+        AssertThat(a.size(), Is().EqualTo(2u));
+        AssertThat(a.empty(), Is().False());
+
+        AssertThat(a.tree_size(), Is().EqualTo(11u));
       });
     });
 
