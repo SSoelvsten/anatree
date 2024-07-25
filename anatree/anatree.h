@@ -52,6 +52,8 @@
 ///                 major impact on the size.
 ///
 /// \tparam Set     Type to be used for storing and returning sets of words.
+///
+/// \tparam Map     Type to be used for storing pairs `T`.
 ////////////////////////////////////////////////////////////////////////////////
 template<typename T       = std::string,
          typename Compare = std::less<typename T::value_type>,
