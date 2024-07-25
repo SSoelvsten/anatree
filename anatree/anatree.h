@@ -248,6 +248,8 @@ public:
   /// \brief Contruct a tree containing all of the given words.
   //////////////////////////////////////////////////////////////////////////////
   template <typename InputIt>
+  requires std::input_iterator<InputIt>
+        && std::is_convertible<typename InputIt::value_type, T>::value
   constexpr
   anatree(InputIt first, InputIt last)
     : anatree()
@@ -325,9 +327,11 @@ public:
   //////////////////////////////////////////////////////////////////////////////
   /// \brief Adds the words to the anatree as per the iterator.
   //////////////////////////////////////////////////////////////////////////////
-  template<typename IT>
+  template<typename InputIt>
+  requires std::input_iterator<InputIt>
+        && std::is_convertible<typename InputIt::value_type, T>::value
   void
-  insert(IT begin, IT end)
+  insert(InputIt begin, InputIt end)
   {
     while (begin != end) { insert(*(begin++)); }
   }
