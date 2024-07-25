@@ -69,7 +69,7 @@ private:
   //////////////////////////////////////////////////////////////////////////////
   /// \brief Type of each individual character.
   //////////////////////////////////////////////////////////////////////////////
-  using char_t = typename T::value_type;
+  using value_type = typename T::value_type;
 
 private:
   //////////////////////////////////////////////////////////////////////////////
@@ -81,13 +81,13 @@ private:
     using ptr = std::unique_ptr<node>;
 
     // TODO: derive a non-useful value as 'NIL'.
-    static constexpr char_t NIL = 0;
+    static constexpr value_type NIL = 0;
 
   public:
     ////////////////////////////////////////////////////////////////////////////
     /// \brief Character in this node
     ////////////////////////////////////////////////////////////////////////////
-    char_t m_char = NIL;
+    value_type m_char = NIL;
 
     ////////////////////////////////////////////////////////////////////////////
     /// \brief Binary choice on children.
@@ -106,7 +106,7 @@ private:
     ////////////////////////////////////////////////////////////////////////////
     /// \brief Initialize a NIL node
     ////////////////////////////////////////////////////////////////////////////
-    void init(char_t c, ptr f_ptr = nullptr, ptr t_ptr = nullptr)
+    void init(value_type c, ptr f_ptr = nullptr, ptr t_ptr = nullptr)
     {
       assert(m_char == NIL && c != NIL);
       m_char = c;
@@ -134,13 +134,13 @@ private:
     ////////////////////////////////////////////////////////////////////////////
     /// \brief Non-nil ptr constructor
     ////////////////////////////////////////////////////////////////////////////
-    node(const char_t c, ptr f_ptr = make_node(), ptr t_ptr = make_node())
+    node(const value_type c, ptr f_ptr = make_node(), ptr t_ptr = make_node())
     { init(c, std::move(f_ptr), std::move(t_ptr)); };
 
     ////////////////////////////////////////////////////////////////////////////
     /// \brief Non-nil constructor
     ////////////////////////////////////////////////////////////////////////////
-    static ptr make_node(char_t c, ptr f_ptr = make_node(), ptr t_ptr = make_node())
+    static ptr make_node(value_type c, ptr f_ptr = make_node(), ptr t_ptr = make_node())
     { return std::make_unique<node>(c, std::move(f_ptr), std::move(t_ptr)); }
 
   public:
@@ -386,8 +386,8 @@ private:
         int true_idx  = rec_true_k.length()  - 1;
 
         while (0 <= false_idx && 0 <= true_idx) {
-          const char_t false_char = rec_false_k[false_idx];
-          const char_t true_char  = rec_true_k[true_idx];
+          const value_type false_char = rec_false_k[false_idx];
+          const value_type true_char  = rec_true_k[true_idx];
 
           if (m_char_comp(true_char, false_char)) {
             true_idx--;
