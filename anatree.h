@@ -148,11 +148,7 @@ private:
       std::stringstream ss;
       ss << "{ char: " << m_char
          << ", children: { " << m_children[false] << ", " << m_children[true]
-         << " }, words [ ";
-      for (const word_t &w : m_words) {
-        ss << w << " ";
-      }
-      ss << "] }";
+         << " } }";
       return ss.str();
     }
   };
@@ -359,7 +355,7 @@ private:
     if (p->m_char == node::NIL) {
       word_map_t ret;
       if (p->m_words.size() > 0) {
-        ret[""] = *p->m_words.begin();
+        ret[{}] = *p->m_words.begin();
       }
       return ret;
     }
@@ -407,7 +403,7 @@ private:
       if (superseeded) { continue; }
 
       // Add word
-      std::string curr_key(rec_false_k);
+      word_t curr_key(rec_false_k);
       curr_key.push_back(p->m_char);
 
       assert(!ret.contains(curr_key));
@@ -417,7 +413,7 @@ private:
 
     // -> Copy over words including current node's character.
     for (const auto [rec_k, rec_v] : rec_true) {
-      std::string curr_key(rec_k);
+      word_t curr_key(rec_k);
       curr_key.push_back(p->m_char);
 
       ret[curr_key] = rec_v;
