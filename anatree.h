@@ -527,46 +527,48 @@ public:
   subanagrams_of(const T &w) const
   {
     T key = sorted_word(w);
-    return subanagrams_of__rec(m_root, key.begin(), key.end());
+    Set res;
+    subanagrams_of__rec(m_root, key.begin(), key.end(), res);
+    return res;
   }
 
 private:
-  Set
+  void
   subanagrams_of__rec(const node_ptr &p,
                       typename T::iterator curr,
-                      const typename T::iterator end) const
+                      const typename T::iterator end,
+                      Set &res) const
   {
-    // Case: Iterator or Anatree is done
-    if (curr == end || p->m_char == node::NIL) {
-      return p->m_words;
+    res.insert(p->m_words.begin(), p->m_words.end());
+
+    // Case: Anatree is done
+    // -> Stop
+    if (p->m_char == node::NIL) {
+      return;
     }
 
     // Case: Iterator behind
     // -> Skip missing characters
-    if (m_char_comp(*curr, p->m_char)) {
-      while (m_char_comp(*curr, p->m_char) && curr != end) { ++curr; }
-      return subanagrams_of__rec(p, curr, end);
+    while (m_char_comp(*curr, p->m_char) && curr != end) { ++curr; }
+
+    // Case: Iterator done
+    // -> Stop
+    if (curr == end) {
+      return;
     }
 
     // Case: Iterator ahead
     // -> Follow 'false' child
     if (m_char_comp(p->m_char, *curr)) {
-      Set ret(p->m_words);
-      const auto rec_false = subanagrams_of__rec(p->m_children[false], curr, end);
-      ret.insert(rec_false.begin(), rec_false.end());
-      return ret;
+      subanagrams_of__rec(p->m_children[false], curr, end, res);
+      return;
     }
 
     // Case: Iterator and node matches
     // -> Follow both children, merge results and add words on current node
     ++curr;
-
-    Set ret(p->m_words);
-    const auto rec_false = subanagrams_of__rec(p->m_children[false], curr, end);
-    const auto rec_true = subanagrams_of__rec(p->m_children[true], curr, end);
-    ret.insert(rec_false.begin(), rec_false.end());
-    ret.insert(rec_true.begin(), rec_true.end());
-    return ret;
+    subanagrams_of__rec(p->m_children[false], curr, end, res);
+    subanagrams_of__rec(p->m_children[true], curr, end, res);
   }
 
 public:
