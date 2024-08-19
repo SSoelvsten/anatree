@@ -549,7 +549,7 @@ private:
 
     // Case: Iterator behind
     // -> Skip missing characters
-    while (m_char_comp(*curr, p->m_char) && curr != end) { ++curr; }
+    while (curr != end && m_char_comp(*curr, p->m_char)) { ++curr; }
 
     // Case: Iterator done
     // -> Stop

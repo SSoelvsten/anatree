@@ -1070,6 +1070,15 @@ go_bandit([]() {
         AssertThat(res.contains("c"), Is().True());
       });
 
+      it("does not crash on finding subanagrams of 'ab' in { 'c', 'cc' }", []() {
+        anatree<> a;
+        a.insert("c");
+        a.insert("cc");
+
+        const auto res = a.subanagrams_of("ab");
+        AssertThat(res.size(), Is().EqualTo(0u));
+      });
+
       it("can find subanagrams in { 'do', 'dog', 'fog', 'god', 'gold', 'loo', 'odd', 'of', 'oo' }", []() {
         anatree<> a;
         a.insert("do");
