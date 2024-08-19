@@ -303,7 +303,7 @@ private:
       // Hand over ownership of 'p' to a new node 'np'. The original node 'p' is
       // now available as its 'false' child.
       node_ptr np = node::make_node(*curr, std::move(p), node::make_node());
-      np->m_words = np->m_children[false]->m_words;
+      np->m_words = std::move(np->m_children[false]->m_words);
       np->m_children[false]->m_words = Set();
       m_tree_size += 2; // <- new node and its NIL 'false' child
       np->m_children[true]  = insert__rec(std::move(np->m_children[true]), w, ++curr, end);
@@ -549,7 +549,7 @@ private:
 
     // Case: Iterator behind
     // -> Skip missing characters
-    while (m_char_comp(*curr, p->m_char) && curr != end) { ++curr; }
+    while (curr != end && m_char_comp(*curr, p->m_char)) { ++curr; }
 
     // Case: Iterator done
     // -> Stop
